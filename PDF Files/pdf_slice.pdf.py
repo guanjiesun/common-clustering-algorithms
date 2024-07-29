@@ -28,9 +28,9 @@ def extract_pages(input_path, output_path, start_page, end_page):
 def main():
     # 设置输入和输出文件路径
     input_pdf_path = "Rough Sets.pdf"
-    output_pdf_path = "A Framework of Three-Way Cluster Analysis.pdf"
-    start_page = 324  # 开始页码
-    end_page = 336  # 结束页码
+    output_pdf_path = "Three-Way Decisions and Three-Way Clustering.pdf"
+    start_page = 30  # 开始页码
+    end_page = 45  # 结束页码
     extract_pages(input_pdf_path, output_pdf_path, start_page, end_page)
 
 
