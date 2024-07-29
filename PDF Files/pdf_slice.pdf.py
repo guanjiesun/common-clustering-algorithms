@@ -1,14 +1,23 @@
-import os
 from PyPDF2 import PdfReader, PdfWriter
 
 
 def extract_pages(input_path, output_path, start_page, end_page):
-    """提取pdf文件的一个切片"""
+    """
+    提取pdf文件的一个切片
+
+    :param input_path: 被切片的文件
+    :param output_path: 输入文件的一个切片
+    :param start_page: 切片开始页码
+    :param end_page: 切片结束页码
+    :return:
+    """
     reader = PdfReader(input_path)
     writer = PdfWriter()
+    print(len(reader.pages))
 
     # 页码从0开始，所以我们需要减1
     for page_num in range(start_page - 1, end_page):
+        # len(reader.pages)表示pdf文件的总页面数
         if page_num < len(reader.pages):
             writer.add_page(reader.pages[page_num])
 
@@ -18,16 +27,11 @@ def extract_pages(input_path, output_path, start_page, end_page):
 
 
 def main():
-    # 获取当前脚本所在目录
-    current_dir = os.path.dirname(os.path.abspath(__file__))
     # 设置输入和输出文件路径
-    pdf_folder = os.path.join(current_dir, "PDF Files")
-    input_pdf_path = os.path.join(pdf_folder, "Rough Sets.pdf")
-    output_pdf_path = os.path.join(pdf_folder, "A Framework of Three-Way Cluster Analysis.pdf")
+    input_pdf_path = "Rough Sets.pdf"
+    output_pdf_path = "A Framework of Three-Way Cluster Analysis.pdf"
     start_page = 324  # 开始页码
     end_page = 336  # 结束页码
-    print(input_pdf_path)
-    print(output_pdf_path)
     extract_pages(input_pdf_path, output_pdf_path, start_page, end_page)
 
 
