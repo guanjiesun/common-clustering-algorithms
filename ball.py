@@ -9,7 +9,8 @@ class GranularBall:
         """粒球初始化，data是一个ndarray，形状是MxN，维度数是2"""
         self.data = data
         self.centroid = np.mean(self.data, axis=0)  # 粒球的质心
-        self.radius = np.mean(np.sqrt(np.sum(np.square(self.data - self.centroid), axis=1)))  # 欧式距离的平均值
+        # self.radius = np.mean(np.sqrt(np.sum(np.square(self.data - self.centroid), axis=1)))  # 欧式距离的平均值
+        self.radius = np.max(np.sqrt(np.sum(np.square(self.data - self.centroid), axis=1)))  # 欧式距离的最大值
 
     def info(self):
         """打印粒球信息"""
@@ -26,7 +27,7 @@ def plot_ball(gb: GranularBall, ax: plt.Axes) -> None:
     # aspect ratio表示纵横比或者长宽比
     # 纵横比的参数设置为equal时，它确保x轴和y轴的刻度是相等的。这意味着在图上，相同的数据单位在x和y方向上会占用相同的物理长度
     # adjustable参数的值有box和datalim
-    ax.set_aspect('equal', adjustable='box')  # 设置图片的纵横比和调整图形的方式（以满足纵横比）
+    ax.set_aspect('equal', adjustable='datalim')  # 设置图片的纵横比和调整图形的方式（以满足纵横比）
 
 
 def configure_figure() -> None:
@@ -47,7 +48,7 @@ def main():
     gb = GranularBall(data)
     gb.info()
     # 创建图片
-    fig, ax = plt.subplots(figsize=(6, 6))
+    fig, ax = plt.subplots(figsize=(12, 24))
     # 粒球可视化
     plot_ball(gb, ax)
     # 设置图片属性
