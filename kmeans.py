@@ -1,13 +1,19 @@
 """
-熟悉numpy中常用函数
+熟悉numpy中常用函数和numpy的广播机制
 
-1. np.random.choice
-2. np.argmin
-3. np.all
-4. np的广播机制的基本原则
+1. np.random.choice, np.argmin, np.all, np.any, np.full
+2. 关于arr的shape=(2, 3, 4)
+    理解为：共两页，每页三行，每行四列
+    也即：共2个二维数组，每个二维数组有3个一维数组，每个一维数组有4个元素
+3. np的广播机制的基本原则：首先看维度数是否相同！！！
     - 如果两个数组的维度数不同，形状较小的数组会在前面补充维度为1
-    - 如果两个数组的形状在某个维度上不匹配，但其中一个的长度为1，则该维度会被扩展以匹配另一个数组
-    - 如果两个数组的形状在某个维度上不匹配，且两者都不为1，则会报错
+    - 若两个数组的维度数相同，且两个数组的形状在某个维度上不匹配，但其中一个的长度为1，则该维度会被扩展以匹配另一个数组
+    - 若两个数组的维度数相同，且两个数组的形状在某个维度上不匹配，但两者都不为1，则会报错
+    如
+4. np的增维原则
+    假设a = [[4, 9, 9, 4], [5, 6, 6, 7]]), a的形状是(2, 4)
+    则b = a[:, np.newaxis, :]的形状就是(2, 1, 4)
+    则b =[[[4, 9, 9, 4]], [[5, 6, 6, 7]]]
 """
 
 
@@ -15,40 +21,51 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def kmeans(data, k=4, max_iterations=100):
-
+def kmeans(data: np.ndarray, k: int = 3, max_iterations: int = 100, tolerance: float = 1e-4):
     """
-    k-means算法实现
+    K-Means算法实现
 
-    :param data: 数据集，numpy数组
-    :param k: 簇个数，int
-    :param max_iterations: 最大迭代次数，int
-
-    :return: 返回一个包含两个元素的元组
-        - 聚类中心centroids，numpy数组
-        - 样本标签labels，numpy数组，表示每一个样本所属的簇
+    :param data: np.ndarray, shape=(n_samples, n_features), ndim=2
+    :param k: number of clusters
+    :param max_iterations: the number of maximum iterations
+    :param tolerance: float, tolerance for convergence
+    :return: tuple[np.ndarray, np.ndarray]
+        - centroids: np.ndarray, shape=(k, n_features), cluster centers
+        - labels: np.ndarray, shape=(n_samples,), cluster labels for each sample
+        - n_iteration: int, number of iterations of K-Means algorithm
     """
-    # 随机初始化k个聚类中心, centroid表示形心，质心或者重心
-    # np.random.choice(n_samples, k, replace=False): 从[0, 1, ... , 3999]中不放回的选择k个值
     n_samples = data.shape[0]
     np.random.seed(n_samples)
-    centroids = data[np.random.choice(n_samples, k, replace=False)]
-    labels = []
-    for _ in range(max_iterations):
-        # 将每一个对象分配给最近的聚类中心
+    if not isinstance(data, np.ndarray) or data.ndim != 2:
+        # 判断data是否有效
+        raise ValueError("Data must be a 2D numpy array")
+    if k <= 0 or k > n_samples:
+        # 判断k是否有效
+        raise ValueError("Invalid number of clusters")
+    centroids = data[np.random.choice(n_samples, k, replace=False)]  # 初始化聚类中心
+    labels = np.full(n_samples, -1)  # 样本的簇标签初始化为-1
+    n_iteration = 0
+    while n_iteration < max_iterations:
         # distances是一个形状为(k, n_samples)的数组，表示每一个聚类中心和其他所有点的距离，理解numpy广播机制
-        distances = np.sqrt(np.sum(np.square(data-centroids[:, np.newaxis]), axis=2))
-        # 每一个数据点都会找到自己所属的聚类中心，并将聚类中心的编号(0, 1, ... , k-1)作为数据点的簇标签
-        # labels是一个形状为(n_samples,)的numpy数组，保存了每一个点的簇标签
+        distances = np.sqrt(np.sum(np.square(data-centroids[:, np.newaxis, :]), axis=2))
         labels = np.argmin(distances, axis=0)
-        # 更新聚类中心；基于刚刚得到的簇，计算每一个簇新的聚类中心
+        # 更新聚类中心
         new_centroids = np.array([data[labels == i].mean(axis=0) for i in range(k)])
-        # 检查算法是否收敛，收敛的条件有很多，并不唯一，可以选择一中方法即可
-        if np.all(centroids == new_centroids):
-            # 新的聚类中心和旧的聚类中心相比没有变化，则停止迭代，聚类完成
-            break
+        # 检查算法是否收敛(收敛的条件有很多, 不唯一, 选择一种方法即可)
+        if np.all(np.abs(new_centroids - centroids) < tolerance):
+            break  # 新聚类中心和旧聚类中心相比变化很小，则停止迭代，聚类完成
         centroids = new_centroids
-    return centroids, labels
+        n_iteration += 1
+
+    return centroids, labels, n_iteration
+
+
+def visualization_before_clustering(data, ax):
+    # 在聚类之前可视化数据分布
+    ax.scatter(data[:, 0], data[:, 1])
+    ax.set_title('Visualization Before Clustering')
+    ax.set_xlabel('Feature 1')
+    ax.set_ylabel('Feature 2')
 
 
 def visualization_after_clustering(data, centroids, labels, ax):
@@ -60,25 +77,17 @@ def visualization_after_clustering(data, centroids, labels, ax):
     ax.set_ylabel('Feature 2')
 
 
-def visualization_before_clustering(data, ax):
-    # 在聚类之前可视化数据分布
-    ax.scatter(data[:, 0], data[:, 1])
-    ax.set_title('Visualization Before Clustering')
-    ax.set_xlabel('Feature 1')
-    ax.set_ylabel('Feature 2')
-
-
 def main():
     # 生成数据
     data = np.loadtxt('sample.txt')
-    centroids, labels = kmeans(data, 5, 100)
+    # K-Means聚类算法
+    centroids, labels, n_iteration = kmeans(data, k=5, max_iterations=1000, tolerance=1e-4)
+    print(f"Number of Iterations: {n_iteration}")
     # 数据可视化
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6))
     visualization_before_clustering(data, ax1)
     visualization_after_clustering(data, centroids, labels, ax2)
-    # 紧凑布局：tight_layout自动调整子图的位置和大小，以确保所有的标签、标题等元素都能完整显示，同时最大化图形区域的使用
     fig.tight_layout()
-    # 显示图片
     plt.show()
 
 
