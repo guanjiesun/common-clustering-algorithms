@@ -4,7 +4,7 @@ from sklearn.datasets import make_blobs
 
 
 class DensityPeakClustering:
-    # 密度峰值聚类算法DPC
+    """Density Peak Clustering Algorithm"""
     def __init__(self, data, dc, min_rho, min_delta):
         # TODO 初始化DPC算法的三个超参数
         self.data = data

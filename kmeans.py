@@ -15,13 +15,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def kmeans(data, k=4, max_iters=100):
+def kmeans(data, k=4, max_iterations=100):
+
     """
     k-means算法实现
 
     :param data: 数据集，numpy数组
     :param k: 簇个数，int
-    :param max_iters: 最大迭代次数，int
+    :param max_iterations: 最大迭代次数，int
 
     :return: 返回一个包含两个元素的元组
         - 聚类中心centroids，numpy数组
@@ -33,7 +34,7 @@ def kmeans(data, k=4, max_iters=100):
     np.random.seed(n_samples)
     centroids = data[np.random.choice(n_samples, k, replace=False)]
     labels = []
-    for _ in range(max_iters):
+    for _ in range(max_iterations):
         # 将每一个对象分配给最近的聚类中心
         # distances是一个形状为(k, n_samples)的数组，表示每一个聚类中心和其他所有点的距离，理解numpy广播机制
         distances = np.sqrt(np.sum(np.square(data-centroids[:, np.newaxis]), axis=2))
