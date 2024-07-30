@@ -28,14 +28,17 @@ def kmeans(data, k=4, max_iters=100):
         - 样本标签labels，numpy数组，表示每一个样本所属的簇
     """
     # 随机初始化k个聚类中心, centroid表示形心，质心或者重心
-    # np.random.choice(data.shape[0], k, replace=False): 从[0, 1, ... , 3999]中不放回的选择k个值
-    centroids = data[np.random.choice(data.shape[0], k, replace=False)]
+    # np.random.choice(n_samples, k, replace=False): 从[0, 1, ... , 3999]中不放回的选择k个值
+    n_samples = data.shape[0]
+    np.random.seed(n_samples)
+    centroids = data[np.random.choice(n_samples, k, replace=False)]
     labels = []
     for _ in range(max_iters):
         # 将每一个对象分配给最近的聚类中心
-        # distances是一个k x data.shape[0]的数组，表示每一个聚类中心和其他所有点的距离，理解numpy广播机制
-        distances = np.sqrt(((data - centroids[:, np.newaxis]) ** 2).sum(axis=2))
-        # 每一个点都会找到自己所属的聚类中心，并将聚类中心的编号(0, 1, ... , k-1)作为自己的标签
+        # distances是一个形状为(k, n_samples)的数组，表示每一个聚类中心和其他所有点的距离，理解numpy广播机制
+        distances = np.sqrt(np.sum(np.square(data-centroids[:, np.newaxis]), axis=2))
+        # 每一个数据点都会找到自己所属的聚类中心，并将聚类中心的编号(0, 1, ... , k-1)作为数据点的簇标签
+        # labels是一个形状为(n_samples,)的numpy数组，保存了每一个点的簇标签
         labels = np.argmin(distances, axis=0)
         # 更新聚类中心；基于刚刚得到的簇，计算每一个簇新的聚类中心
         new_centroids = np.array([data[labels == i].mean(axis=0) for i in range(k)])
