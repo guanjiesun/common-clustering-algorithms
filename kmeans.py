@@ -80,8 +80,9 @@ def visualization_after_clustering(data, centroids, labels, ax):
 def main():
     # 生成数据
     data = np.loadtxt('sample.txt')
+    # data = data[np.random.choice(data.shape[0], 30, replace=False)]
     # K-Means聚类算法
-    centroids, labels, n_iteration = kmeans(data, k=5, max_iterations=1000, tolerance=1e-4)
+    centroids, labels, n_iteration = kmeans(data, k=3, max_iterations=1000, tolerance=1e-4)
     print(f"Number of Iterations: {n_iteration}")
     # 数据可视化
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6))
