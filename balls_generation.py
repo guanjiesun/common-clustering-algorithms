@@ -8,31 +8,57 @@ from kmeans import kmeans  # Local module imports
 
 
 class GranularBall:
-    """粒球"""
+    """
+    A Granular Ball is a hypersphere in a multidimensional space that encapsulates
+    a set of data points. It is characterized by its centroid and radius.
+
+    Attributes:
+        data (np.ndarray): The data points contained in the ball.
+                           Shape: (n_samples, m_features)
+                           Ndim: 2
+        size (int): The number of data points in the ball.
+
+    Methods:
+        get_centroid(): Calculates and returns the centroid of the ball.
+        get_radius(): Calculates and returns the radius of the ball.
+    """
+
     def __init__(self, data: np.ndarray):
         """
-        initiate a granular ball
+        Initializes a GranularBall instance.
 
-        :param data: np.ndarray, ndim=2, shape=(n_samples, m_features)
+        Args:
+            data (np.ndarray): The data points to be enclosed in the ball.
+                               Shape: (n_samples, m_features)
+                               Ndim: 2
+
+        Raises:
+            ValueError: If the input data is not a 2D numpy array.
         """
+        if not isinstance(data, np.ndarray) or data.ndim != 2:
+            raise ValueError("Data must be a 2D numpy array")
+
         self.data = data
         self.size = len(data)
 
     def get_centroid(self) -> np.ndarray:
         """
-        get the centroid of one granular ball
+        Calculates the centroid of the Granular Ball.
 
-        :return: np.ndarray
+        Returns:
+            np.ndarray: The centroid of the ball. Shape: (m_features)
         """
         return np.mean(self.data, axis=0)
 
     def get_radius(self) -> np.float64:
         """
-        get the radius of one granular ball
+        Calculates the radius of the Granular Ball.
+        The radius is defined as the maximum distance from any point to the centroid of the ball.
 
-        :return: float
+        Returns:
+            np.float64: The radius of the ball.
         """
-        return np.max(np.sqrt(np.sum(np.square(self.data-self.get_centroid()), axis=1)))
+        return np.max(np.sqrt(np.sum(np.square(self.data - self.get_centroid()), axis=1)))
 
 
 def split_granular_ball(gb: GranularBall) -> (GranularBall, GranularBall):
@@ -107,7 +133,7 @@ def main():
     """
     generate gbs and visualize gbs, gbs represents "Granular Balls" or "Granular Ball Space"
 
-    :return:
+    :return: None
     """
     # import data, data.ndim=2, data.shape=(n_samples, m_features)
     data = np.loadtxt('sample.txt')
