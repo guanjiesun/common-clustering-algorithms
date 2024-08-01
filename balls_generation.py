@@ -76,7 +76,7 @@ def generate_granular_balls(data: np.ndarray) -> list[GranularBall]:
 
 def plot_granular_balls(gbs: list[GranularBall], ax: plt.Axes) -> None:
     """
-    visualize gbs
+    visualize gbs(只能可视化具有两个特征的数据集，若数据集有三个或者以上的特征，需要重新设计函数)
 
     :param gbs: a list of Granular Balls
     :param ax: an instance of plt.Axes
