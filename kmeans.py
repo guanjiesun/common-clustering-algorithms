@@ -32,7 +32,6 @@ def kmeans(data: np.ndarray, k: int = 3, max_iterations: int = 100, tolerance: f
     :return: tuple[np.ndarray, np.ndarray]
         - centroids: np.ndarray, shape=(k, n_features), cluster centers
         - labels: np.ndarray, shape=(n_samples,), cluster labels for each sample
-        - n_iteration: int, number of iterations of K-Means algorithm
     """
     n_samples = data.shape[0]
     np.random.seed(n_samples)
@@ -44,8 +43,7 @@ def kmeans(data: np.ndarray, k: int = 3, max_iterations: int = 100, tolerance: f
         raise ValueError("Invalid number of clusters")
     centroids = data[np.random.choice(n_samples, k, replace=False)]  # 初始化聚类中心
     labels = np.full(n_samples, -1)  # 样本的簇标签初始化为-1
-    n_iteration = 0
-    while n_iteration < max_iterations:
+    for _ in range(max_iterations):
         # distances是一个形状为(k, n_samples)的数组，表示每一个聚类中心和其他所有点的距离，理解numpy广播机制
         distances = np.sqrt(np.sum(np.square(data-centroids[:, np.newaxis, :]), axis=2))
         labels = np.argmin(distances, axis=0)
@@ -55,9 +53,8 @@ def kmeans(data: np.ndarray, k: int = 3, max_iterations: int = 100, tolerance: f
         if np.all(np.abs(new_centroids - centroids) < tolerance):
             break  # 新聚类中心和旧聚类中心相比变化很小，则停止迭代，聚类完成
         centroids = new_centroids
-        n_iteration += 1
 
-    return centroids, labels, n_iteration
+    return centroids, labels
 
 
 def visualization_before_clustering(data, ax):
@@ -80,10 +77,8 @@ def visualization_after_clustering(data, centroids, labels, ax):
 def main():
     # 生成数据
     data = np.loadtxt('sample.txt')
-    # data = data[np.random.choice(data.shape[0], 30, replace=False)]
-    # K-Means聚类算法
-    centroids, labels, n_iteration = kmeans(data, k=3, max_iterations=1000, tolerance=1e-4)
-    print(f"Number of Iterations: {n_iteration}")
+    # 获取聚类结果：每一个簇的中心；每一个样本的簇标签
+    centroids, labels = kmeans(data, k=3, max_iterations=1000, tolerance=1e-4)
     # 数据可视化
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6))
     visualization_before_clustering(data, ax1)
