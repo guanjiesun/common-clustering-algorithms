@@ -13,14 +13,26 @@ class GranularBall:
         """
         initiate a granular ball
 
-        :param data: np.ndarray, ndim =2, shape=(n_samples, m_features)
+        :param data: np.ndarray, ndim=2, shape=(n_samples, m_features)
         """
         self.data = data
         self.size = len(data)
-        # centroid.shape=(m_features,), centroid is an instance of np.ndarray
-        self.centroid = np.mean(self.data, axis=0)
-        # the max value of the distances from all points to centroid
-        self.radius = np.max(np.sqrt(np.sum(np.square(self.data - self.centroid), axis=1)))
+
+    def get_centroid(self) -> np.ndarray:
+        """
+        get the centroid of one granular ball
+
+        :return: np.ndarray
+        """
+        return np.mean(self.data, axis=0)
+
+    def get_radius(self) -> np.float64:
+        """
+        get the radius of one granular ball
+
+        :return: float
+        """
+        return np.max(np.sqrt(np.sum(np.square(self.data-self.get_centroid()), axis=1)))
 
 
 def split_granular_ball(gb: GranularBall) -> (GranularBall, GranularBall):
@@ -39,7 +51,7 @@ def split_granular_ball(gb: GranularBall) -> (GranularBall, GranularBall):
 
 def generate_granular_balls(data: np.ndarray) -> list[GranularBall]:
     """
-    generate granular ball space (gbs) based on a given dataset
+    generate gbs based on a given dataset
 
     :param data: np.ndarray, shape=(n_samples, m_features)
     :return: gbs, a list of Granular Balls, abbreviated as gbs
@@ -60,30 +72,38 @@ def generate_granular_balls(data: np.ndarray) -> list[GranularBall]:
 
 def plot_granular_balls(gbs: list[GranularBall], ax: plt.Axes) -> None:
     """
-    粒球可视化
+    visualize gbs
 
     :param gbs: a list of Granular Balls
     :param ax: an instance of plt.Axes
     :return: None
     """
     for i, gb in enumerate(gbs):
-        data, centroid, radius = gb.data, gb.centroid, gb.radius  # 获取粒球包含的数据、粒球形心和粒球半径
-        circle = Circle(centroid, radius, fill=False, color='blue')  # 创建圆
-        ax.scatter(data[:, 0], data[:, 1], color='blue', marker='.', s=10)  # 绘制数据点
+        # 获取粒球包含的数据、粒球形心和粒球半径
+        data, centroid, radius = gb.data, gb.get_centroid(), gb.get_radius()
+        float_x, float_y = float(centroid[0]), float(centroid[1])
+        float_radius = float(radius)
+        circle = Circle((float_x, float_y), float_radius, fill=False, color='blue')  # 创建圆
+        ax.scatter(data[:, 0], data[:, 1], color='blue', marker='.', s=5)  # 绘制数据点
         ax.add_artist(circle)  # 绘制圆
-        ax.scatter(centroid[0], centroid[1], color='red', s=10)  # 绘制圆心
+        ax.scatter(centroid[0], centroid[1], color='red', s=5)  # 绘制圆心
         ax.set_aspect('equal', adjustable='datalim')  # 设置图片的纵横比和调整图形的方式
 
+    plt.tight_layout()
     plt.show()
 
 
 def main():
-    """基于一个数据集，生成粒球空间，并且可视化此粒球空间"""
-    # 导入数据
+    """
+    generate gbs and visualize gbs, gbs represents "Granular Balls" or "Granular Ball Space"
+
+    :return:
+    """
+    # import data
     data = np.loadtxt('sample.txt')
-    # 生成粒球列表gbs, gbs represents "Granular Balls" or "Granular Ball Space"
+    # generate gbs
     gbs = generate_granular_balls(data)
-    # 可视化生成的粒球
+    # visualize gbs
     fig, ax = plt.subplots()
     plot_granular_balls(gbs, ax)
 
