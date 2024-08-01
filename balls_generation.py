@@ -88,11 +88,16 @@ def plot_granular_balls(gbs: list[GranularBall], ax: plt.Axes) -> None:
         # float_x, float_y和float_radius是为了符合Circle函数对参数的要求
         float_x, float_y = float(centroid[0]), float(centroid[1])
         float_radius = float(radius)
-        circle = Circle((float_x, float_y), float_radius, fill=False, color='blue')  # 创建圆
-        ax.scatter(data[:, 0], data[:, 1], color='blue', marker='.', s=5)  # 绘制数据点
-        ax.add_artist(circle)  # 绘制圆
-        ax.scatter(centroid[0], centroid[1], color='red', s=5)  # 绘制圆心
-        ax.set_aspect('equal', adjustable='datalim')  # 设置图片的纵横比和调整图形的方式
+        # 创建圆
+        circle = Circle((float_x, float_y), float_radius, fill=False, color='blue')
+        # 绘制数据点
+        ax.scatter(data[:, 0], data[:, 1], color='blue', marker='.', s=5)
+        # 绘制圆
+        ax.add_artist(circle)
+        # 绘制圆心
+        ax.scatter(centroid[0], centroid[1], color='red', s=5)
+        # 设置图片的纵横比和调整图形的方式
+        ax.set_aspect('equal', adjustable='datalim')
 
     plt.tight_layout()
     plt.show()
