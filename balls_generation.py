@@ -43,8 +43,12 @@ def split_granular_ball(gb: GranularBall) -> (GranularBall, GranularBall):
     :return: tuple(GranularBall, GranularBall)
     """
     _, labels = kmeans(gb.data, 2)
-    micro_gb_1 = GranularBall(gb.data[labels == 0])
-    micro_gb_2 = GranularBall(gb.data[labels == 1])
+    # 获取满足条件的索引; np.where返回的只包含一个np.ndarray的元组
+    indices_1 = np.where(labels == 0)[0]
+    indices_2 = np.where(labels == 1)[0]
+    # 使用np的高级索引创建视图(引用)而不是复制，复制会占用大量内存空间
+    micro_gb_1 = GranularBall(gb.data[indices_1])
+    micro_gb_2 = GranularBall(gb.data[indices_2])
 
     return micro_gb_1, micro_gb_2
 
@@ -79,8 +83,9 @@ def plot_granular_balls(gbs: list[GranularBall], ax: plt.Axes) -> None:
     :return: None
     """
     for i, gb in enumerate(gbs):
-        # 获取粒球包含的数据、粒球形心和粒球半径
+        # 获取粒球的数据、质心和半径
         data, centroid, radius = gb.data, gb.get_centroid(), gb.get_radius()
+        # float_x, float_y和float_radius是为了符合Circle函数对参数的要求
         float_x, float_y = float(centroid[0]), float(centroid[1])
         float_radius = float(radius)
         circle = Circle((float_x, float_y), float_radius, fill=False, color='blue')  # 创建圆
@@ -99,7 +104,7 @@ def main():
 
     :return:
     """
-    # import data
+    # import data, data.ndim=2, data.shape=(n_samples, m_features)
     data = np.loadtxt('sample.txt')
     # generate gbs
     gbs = generate_granular_balls(data)
