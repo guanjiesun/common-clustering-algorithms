@@ -1,8 +1,6 @@
 from collections import deque  # Standard library imports
-from pathlib import Path
 
 import numpy as np  # Third-party library imports
-import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.patches import Circle
 
@@ -13,7 +11,7 @@ class GranularBall:
     """粒球"""
     def __init__(self, data: np.ndarray):
         """
-        粒球初始化
+        initiate a granular ball
 
         :param data: np.ndarray, ndim =2, shape=(n_samples, m_features)
         """
@@ -41,7 +39,7 @@ def split_granular_ball(gb: GranularBall) -> (GranularBall, GranularBall):
 
 def generate_granular_balls(data: np.ndarray) -> list[GranularBall]:
     """
-    基于一个数据集，生成一个粒球空间gbs
+    generate granular ball space (gbs) based on a given dataset
 
     :param data: np.ndarray, shape=(n_samples, m_features)
     :return: gbs, a list of Granular Balls, abbreviated as gbs
@@ -75,31 +73,6 @@ def plot_granular_balls(gbs: list[GranularBall], ax: plt.Axes) -> None:
         ax.add_artist(circle)  # 绘制圆
         ax.scatter(centroid[0], centroid[1], color='red', s=10)  # 绘制圆心
         ax.set_aspect('equal', adjustable='datalim')  # 设置图片的纵横比和调整图形的方式
-
-    plt.show()
-
-
-def plot_datasets_from_gbsc(folder_name='datasets_from_gbsc'):
-    """
-    可视化datasets_from_gbsc文件夹中的12个数据集
-
-    :param folder_name: 数据集所在的文件夹
-    :return: None
-    """
-    # axs is np.ndarray, ndim=2, shape=(3, 4)
-    fig, axs = plt.subplots(3, 4, figsize=(10, 8))
-    axs: np.ndarray[plt.Axes] = axs.flatten()
-    # 使用Path获取当前文件的绝对路径
-    current_file_path = Path(__file__).resolve()
-    folder_path = current_file_path.parent / folder_name
-    # 使用Path.glob来获取所有的csv文件的绝对路径
-    csv_file_paths = list(folder_path.glob('*.csv'))
-
-    for i, csv_file_path in enumerate(csv_file_paths):  # 只处理前12个CSV文件
-        # csv_file_path是数据集文件的绝对路径
-        data = pd.read_csv(csv_file_path).to_numpy()
-        axs[i].scatter(data[:, 0], data[:, 1], s=5, color='black')
-        axs[i].set_aspect('equal', 'datalim')
 
     plt.show()
 
