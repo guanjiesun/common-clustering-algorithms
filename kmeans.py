@@ -16,7 +16,7 @@ def kmeans(data: np.ndarray, k: int = 3, max_iterations: int = 100,
         - labels: np.ndarray, shape=(n_samples), the cluster label for each sample
     """
     n_samples = data.shape[0]
-    np.random.seed(100)
+    np.random.seed(n_samples)
 
     # 判断data, k, max_iterations是否合法
     if not isinstance(data, np.ndarray) or data.ndim != 2:
@@ -128,6 +128,45 @@ def get_cores_fringes(clusters: list[np.ndarray]) -> tuple[list[set], list[set],
     return clusters, cores, fringes
 
 
+def visualization_before_clustering(data: np.ndarray, ax: plt.Axes):
+    """
+
+    :param data: np.ndarray, shape=(n_samples, m_features), ndim=2
+    :param ax: an instance of plt.Axes
+    :return: None
+    """
+    # 在聚类之前可视化数据分布
+    ax.scatter(data[:, 0], data[:, 1], s=5, marker='.', color='black')
+    ax.set_title('Visualization Before Clustering')
+    ax.set_xlabel('Feature 1')
+    ax.set_ylabel('Feature 2')
+
+
+def visualization_after_kmeans_clustering(data: np.ndarray, centroids: np.ndarray,
+                                          labels: np.ndarray, ax: plt.Axes):
+    """
+    K-Means聚类结果可视化
+
+    :param data: np.ndarray, shape=(n_samples, m_features), ndim=2
+    :param centroids: np.ndarray, shape=(k, m_features), ndim=1
+    :param labels: np.ndarray, shape=(n_samples), the cluster label for each sample
+    :param ax: an instance of plt.Axes
+    :return: None
+    """
+    k = len(centroids)
+    # colors列表的长度要和k保持一致
+    colors = ['yellow', 'green', 'blue']
+    for i in range(k):
+        cluster = data[np.where(labels == i)[0]]
+        ax.scatter(cluster[:, 0], cluster[:, 1], c=colors[i], s=5, marker='.')
+
+    # 绘制聚类中心
+    ax.scatter(centroids[:, 0], centroids[:, 1], color='red', s=50, marker='.')
+    ax.set_title('Visualization After K-Means Clustering')
+    ax.set_xlabel('Feature 1')
+    ax.set_ylabel('Feature 2')
+
+
 def visualization_after_three_way_kmeans_clustering(data, centers, clusters, ax):
     """
     3WK-Means聚类结果可视化
@@ -157,10 +196,10 @@ def visualization_after_three_way_kmeans_clustering(data, centers, clusters, ax)
         ax.scatter(core_i_data[:, 0], core_i_data[:, 1], c=colors[i], marker='.', s=5)
 
     # 绘制边缘域的点
-    a = (fringes[0]).union(fringes[1])
-    a = a.union(fringes[1])
-    a = a.union(fringes[2])
-    fringe_data = data[list(a)]
+    fringes_indices = (fringes[0]).union(fringes[1]).union(fringes[2])
+    # a = a.union(fringes[1])
+    # a = a.union(fringes[2])
+    fringe_data = data[list(fringes_indices)]
     ax.scatter(fringe_data[:, 0], fringe_data[:, 1], c='black', s=5, marker='.')
 
     # 绘制聚类中心
@@ -172,28 +211,11 @@ def visualization_after_three_way_kmeans_clustering(data, centers, clusters, ax)
     ax.set_ylabel('Feature 2')
 
 
-def visualization_before_clustering(data, ax):
-    # 在聚类之前可视化数据分布
-    ax.scatter(data[:, 0], data[:, 1], s=5, marker='.', color='black')
-    ax.set_title('Visualization Before Clustering')
-    ax.set_xlabel('Feature 1')
-    ax.set_ylabel('Feature 2')
-
-
-def visualization_after_kmeans_clustering(data, centroids, labels, ax):
-    # 聚类结果可视化
-    ax.scatter(data[:, 0], data[:, 1], c=labels, cmap='viridis', s=5, marker='.')
-    ax.scatter(centroids[:, 0], centroids[:, 1], color='red', s=50, marker='.')
-    ax.set_title('Visualization After K-Means Clustering')
-    ax.set_xlabel('Feature 1')
-    ax.set_ylabel('Feature 2')
-
-
 def main() -> None:
     """
     样本数据集sample.txt, (4000, 2)
     1. K-Means, k=3
-    2. 3WK-Means, k=3, epsilon=2.5
+    2. 3WK-Means, k=3, epsilon越大，边缘域的点越多
     3. 可视化K-Means和3WK-Means的聚类结果
 
     :return: None
@@ -207,7 +229,7 @@ def main() -> None:
     centroids, labels = kmeans(data, k=3)
     # 获取3WK-Means聚类结果，阈值epsilon判断一个数据点是否属于一个簇的支集
     # 3WK-Means的思想来源于王平心老师的三支K-Means论文
-    centers, clusters = three_way_kmeans(data, k=3, epsilon=2.5)
+    centers, clusters = three_way_kmeans(data, k=3, epsilon=2.64)
 
     # 数据可视化
     fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(12, 4))
