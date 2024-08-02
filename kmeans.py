@@ -87,7 +87,7 @@ def three_way_kmeans(data: np.ndarray, k: int = 3, max_iterations: int = 100, to
 
 def get_cores_fringes(clusters: list[np.ndarray]) -> tuple[list[set], list[set], list[set]]:
     """
-    基于3WK-Means返回的clusters，求出每一个簇的核心域和边缘域
+    基于3WK-Means返回的clusters，求出每一个簇的支集，核心域集和边缘域集
 
     :param clusters: list[np.ndarray]，每一个列表元素包含一个簇的支集
     :return: tuple[list[set], list[set], list[set]]
@@ -111,8 +111,18 @@ def get_cores_fringes(clusters: list[np.ndarray]) -> tuple[list[set], list[set],
 
 
 def visualization_after_three_way_kmeans_clustering(data, centers, clusters, ax):
+    """
+    3WK-Means聚类结果可视化
+
+    :param data: np.ndarray, shape=(n_samples, m_features), ndim=2
+    :param centers: np.ndarray, shape=(k, m_features), ndim=1
+    :param clusters: list[np.ndarray], len(clusters)=k
+    :param ax:
+    :return:
+    """
     # 三支聚类结果可视化
     k = len(clusters)
+    # 获取每一个簇的支集，核心域集，边缘域集
     clusters, cores, fringes = get_cores_fringes(clusters)
     # 给核心域的数据点打上簇标签
     labels = list()
@@ -120,9 +130,11 @@ def visualization_after_three_way_kmeans_clustering(data, centers, clusters, ax)
         label = [i for _ in cores[i]]
         labels.append(label)
 
+    # colors列表的长度要和k保持一致
+    colors = ['yellow', 'green', 'blue']
     # 绘制核心域的点
     for i in range(k):
-        colors = ['yellow', 'green', 'blue']
+        # core_i_data表示簇i的核心域的数据点
         core_i_data = data[list(cores[i])]  # 集合不可以做np.ndarray的索引，列表可以
         ax.scatter(core_i_data[:, 0], core_i_data[:, 1], c=colors[i], marker='.', s=5)
 
@@ -159,7 +171,15 @@ def visualization_after_kmeans_clustering(data, centroids, labels, ax):
     ax.set_ylabel('Feature 2')
 
 
-def main():
+def main() -> None:
+    """
+    样本数据集sample.txt, (4000, 2)
+    1. K-Means, k=3
+    2. 3WK-Means, k=3, epsilon=2.5
+    3. 可视化K-Means和3WK-Means的聚类结果
+
+    :return: None
+    """
     # 生成数据
     data = np.loadtxt('sample.txt')
     # import pandas as pd
@@ -167,7 +187,8 @@ def main():
 
     # 获取K-Means聚类结果
     centroids, labels = kmeans(data, k=3)
-    # 获取3WK-Means聚类结果
+    # 获取3WK-Means聚类结果，阈值epsilon判断一个数据点是否属于一个簇的支集
+    # 3WK-Means的思想来源于王平心老师的三支K-Means论文
     centers, clusters = three_way_kmeans(data, k=3, epsilon=2.5)
 
     # 数据可视化
