@@ -26,7 +26,7 @@ class GranularBall:
         get_radius(): Calculates and returns the radius of the ball.
     """
 
-    def __init__(self, data: np.ndarray, indices=None):
+    def __init__(self, data: np.ndarray, indices: np.ndarray = None):
         """
         Initializes a GranularBall instance.
 
@@ -45,7 +45,7 @@ class GranularBall:
         self.size = len(data)
 
         if indices is None:
-            self.indices = np.arange(len(data))  # 将整个数据集定义成一个粒球的时候需要用到此行代码
+            self.indices = np.arange(len(data))  # 将整个数据集初始化为一个粒球的时候需要用到此行代码
         else:
             self.indices = indices  # 粒球中的数据点在原始数据集中的索引
 
@@ -110,15 +110,13 @@ def generate_granular_balls(data: np.ndarray) -> list[GranularBall]:
 
 def print_gb_indices(gbs: list[GranularBall]) -> None:
     """
-    打印gbs中每一个粒球包含的对象在原始数据集中的索引
+    输出gbs中每一个粒球包含的对象在原始数据集中的索引信息
 
     :param gbs: a list of Granular Balls
     :return: None
     """
     for gb in gbs:
-        print(gb.size == len(gb.indices))
         print(gb.indices)
-        print()
 
 
 def plot_granular_balls(gbs: list[GranularBall], ax: plt.Axes) -> None:
