@@ -1,5 +1,4 @@
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
 
 
@@ -86,8 +85,16 @@ def three_way_kmeans(data: np.ndarray, k: int = 3, max_iterations: int = 100, to
     return centers, clusters
 
 
-def visualization_after_three_way_kmeans_clustering(data, centers, clusters, ax):
-    # 三支聚类结果可视化
+def get_cores_fringes(clusters: list[np.ndarray]) -> tuple[list[set], list[set], list[set]]:
+    """
+    基于3WK-Means返回的clusters，求出每一个簇的核心域和边缘域
+
+    :param clusters: list[np.ndarray]，每一个列表元素包含一个簇的支集
+    :return: tuple[list[set], list[set], list[set]]
+        - 返回每一个簇的支集、核心域集和边缘域集
+        - 对于任意一个簇，支集 = 核心域集合 + 边缘域集合
+        - 即任意一个簇C_i, clusters[i] = cores[i] union fringes[i]
+    """
     k = len(clusters)
     clusters = [set(clusters[i]) for i in range(k)]  # clusters[np.ndarray] -> clusters[set]
     cores = [set() for _ in range(k)]
@@ -99,6 +106,14 @@ def visualization_after_three_way_kmeans_clustering(data, centers, clusters, ax)
         # cores[i]和fringes[i]的并集就是cores[i]，也就是簇i的支集
         fringes[i] = clusters[i].difference(cores[i])
 
+    # clusters, cores, fringes都是包含k个元素的列表，列表元素都是集合
+    return clusters, cores, fringes
+
+
+def visualization_after_three_way_kmeans_clustering(data, centers, clusters, ax):
+    # 三支聚类结果可视化
+    k = len(clusters)
+    clusters, cores, fringes = get_cores_fringes(clusters)
     # 给核心域的数据点打上簇标签
     labels = list()
     for i in range(k):
@@ -147,6 +162,8 @@ def visualization_after_kmeans_clustering(data, centroids, labels, ax):
 def main():
     # 生成数据
     data = np.loadtxt('sample.txt')
+    # import pandas as pd
+    # data = pd.read_csv('./datasets_from_gbsc/D10.csv').to_numpy()
 
     # 获取K-Means聚类结果
     centroids, labels = kmeans(data, k=3)
