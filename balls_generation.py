@@ -26,7 +26,7 @@ class GranularBall:
         get_radius(): Calculates and returns the radius of the ball.
     """
 
-    def __init__(self, data: np.ndarray, indices: np.ndarray = None):
+    def __init__(self, data: np.ndarray, indices=None):
         """
         Initializes a GranularBall instance.
 
@@ -46,7 +46,7 @@ class GranularBall:
 
         if indices is None:
             self.indices = np.arange(len(data))  # 将整个数据集定义成一个粒球的时候需要用到此行代码
-        if isinstance(indices, np.ndarray):
+        else:
             self.indices = indices  # 粒球中的数据点在原始数据集中的索引
 
     def get_centroid(self) -> np.ndarray:
