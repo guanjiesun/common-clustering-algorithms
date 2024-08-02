@@ -17,13 +17,16 @@ class GranularBall:
                            Shape: (n_samples, m_features)
                            Ndim: 2
         size (int): The number of data points in the ball.
+        indices (np.ndarray): The index in origin dataset of each datapoint within Granular Ball
+                              shape: (gb.size)
+                              ndim: 1
 
     Methods:
         get_centroid(): Calculates and returns the centroid of the ball.
         get_radius(): Calculates and returns the radius of the ball.
     """
 
-    def __init__(self, data: np.ndarray):
+    def __init__(self, data: np.ndarray, indices: np.ndarray = None):
         """
         Initializes a GranularBall instance.
 
@@ -41,12 +44,17 @@ class GranularBall:
         self.data = data
         self.size = len(data)
 
+        if indices is None:
+            self.indices = np.arange(len(data))  # 将整个数据集定义成一个粒球的时候需要用到此行代码
+        if isinstance(indices, np.ndarray):
+            self.indices = indices  # 粒球中的数据点在原始数据集中的索引
+
     def get_centroid(self) -> np.ndarray:
         """
         Calculates the centroid of the Granular Ball.
 
         Returns:
-            np.ndarray: The centroid of the ball. Shape: (m_features)
+            np.ndarray: The centroid of the ball. Shape: (m_features). Ndim: 1
         """
         return np.mean(self.data, axis=0)
 
@@ -73,8 +81,8 @@ def split_granular_ball(gb: GranularBall) -> (GranularBall, GranularBall):
     indices_1 = np.where(labels == 0)[0]
     indices_2 = np.where(labels == 1)[0]
     # 使用np的高级索引创建视图(引用)而不是复制，复制会占用大量内存空间
-    micro_gb_1 = GranularBall(gb.data[indices_1])
-    micro_gb_2 = GranularBall(gb.data[indices_2])
+    micro_gb_1 = GranularBall(gb.data[indices_1], indices=indices_1)
+    micro_gb_2 = GranularBall(gb.data[indices_2], indices=indices_2)
 
     return micro_gb_1, micro_gb_2
 
@@ -98,6 +106,19 @@ def generate_granular_balls(data: np.ndarray) -> list[GranularBall]:
             gbs.append(gb)
 
     return gbs
+
+
+def print_gb_indices(gbs: list[GranularBall]) -> None:
+    """
+    打印gbs中每一个粒球包含的对象在原始数据集中的索引
+
+    :param gbs: a list of Granular Balls
+    :return: None
+    """
+    for gb in gbs:
+        print(gb.size == len(gb.indices))
+        print(gb.indices)
+        print()
 
 
 def plot_granular_balls(gbs: list[GranularBall], ax: plt.Axes) -> None:
