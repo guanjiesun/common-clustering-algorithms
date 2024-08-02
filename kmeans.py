@@ -41,11 +41,27 @@ def kmeans(data: np.ndarray, k: int = 3, max_iterations: int = 100,
             break  # 新聚类中心和旧聚类中心相比变化很小，则停止迭代，聚类完成
         centroids = new_centroids
 
+    # centroids, ndim=2, shape=(k, m_features), 表示k个聚类中心
+    # labels, ndim=1, shape=(n_samples), 表示每一个数据点的标签
     return centroids, labels
 
 
 def three_way_kmeans(data: np.ndarray, k: int = 3, max_iterations: int = 100, tolerance: float = 1e-4,
                      epsilon: float = 2.0) -> tuple[np.ndarray, list[np.ndarray]]:
+    """
+    三支K-Means，每一个簇有核心域和边缘域两个集合表示
+    原则：每一个数据点只能属于一个簇的核心域，但是可以属于一个或者多个簇的边缘域
+    论文：于洪《三支聚类综述》；王平心《三支K-Means》
+
+    :param data: np.ndarray, shape=(n_samples, m_features), ndim=2
+    :param k: int, to specify the number of cluster
+    :param max_iterations: int, maximum iterations limited to memory and cpu
+    :param tolerance: termination condition of iteration
+    :param epsilon: the hyperparameter of 3WK-Means, inspired by 王平心's 3WK-Means
+    :return: tuple[np.ndarray, list[np.ndarray]]
+        - centers: np.ndarray, shape=(k, m_features), ndim=2
+        - clusters: list[np.ndarray], include k np.ndarray
+    """
     n_samples = len(data)
     np.random.seed(100)
 
@@ -82,6 +98,8 @@ def three_way_kmeans(data: np.ndarray, k: int = 3, max_iterations: int = 100, to
             break  # 新聚类中心和旧聚类中心相比变化很小，则停止迭代，聚类完成
         centers = new_centroids
 
+    # centers, ndim=2, shape=(k, m_features), 表示k个聚类中心
+    # clusters是包含k个元素的列表，每个列表元素存储每个簇的支集
     return centers, clusters
 
 
