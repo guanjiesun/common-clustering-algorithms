@@ -6,8 +6,8 @@
 
 ## Runtime Environment
 - Windows 10
-- Pycharm Community
+- Pycharm Community 2024.1.4
 - Python 3.11.9
-- numpy
-- pandas
-- matplotlib
+- numpy 1.26.4
+- pandas 2.2.2
+- matplotlib 3.9.1
