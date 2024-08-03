@@ -1,6 +1,13 @@
-## 编写一些常用的聚类算法
+## Common Clustering Algorithms
+- K-Means
+- 3WK-Means
+- DP
+- 3WDP
 
-## Hello, World!
-
-## 开发环境
-- python 3.11.9
+## Runtime Environment
+- Windows 10
+- Pycharm Community
+- Python 3.11.9
+- numpy
+- pandas
+- matplotlib
