@@ -146,6 +146,7 @@ def visualize_original_data(data: np.ndarray, ax: plt.Axes):
     ax.set_title('Visualization Before Clustering')
     ax.set_xlabel('Feature 1')
     ax.set_ylabel('Feature 2')
+    ax.set_aspect('equal', adjustable='box')
 
 
 def visualize_kmeans_results(data: np.ndarray, centroids: np.ndarray, clusters: list[np.ndarray], ax: plt.Axes):
@@ -170,6 +171,7 @@ def visualize_kmeans_results(data: np.ndarray, centroids: np.ndarray, clusters: 
     ax.set_title('Visualization After K-Means Clustering')
     ax.set_xlabel('Feature 1')
     ax.set_ylabel('Feature 2')
+    ax.set_aspect('equal', adjustable='box')
 
 
 def visualize_twkmeans_results(data, centers, clusters, ax):
@@ -214,6 +216,7 @@ def visualize_twkmeans_results(data, centers, clusters, ax):
     ax.set_title('Visualization After 3WK-Means Clustering')
     ax.set_xlabel('Feature 1')
     ax.set_ylabel('Feature 2')
+    ax.set_aspect('equal', adjustable='box')
 
 
 def main() -> None:
