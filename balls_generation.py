@@ -64,6 +64,7 @@ def kmeans(indices: np.ndarray, k: int = 2, max_iterations: int = 100, tolerance
         # 如果算法没有收敛，则更新聚类中心，进行下一次迭代
         centroids = new_centroids
 
+    # 求出粒球的划分即可，不需要每一个划分的中心点
     return clusters
 
 
