@@ -38,36 +38,29 @@ def kmeans(indices: np.ndarray, k: int = 2, max_iterations: int = 100, tolerance
     # 从data中复制属于gb的数据
     gb_data = data[indices]
     gb_size = len(gb_data)
-    np.random.seed(gb_size)
 
-    # 初始化k个聚类中心
-    # centroids: np.ndarray, ndim=2, shape=(k, m_features)
+    # 初始化k个聚类中心; centroids: np.ndarray, ndim=2, shape=(k, m_features)
+    np.random.seed(gb_size)
     centroids = gb_data[np.random.choice(gb_size, k, replace=False)]
     n_iteration = 0
     while True:
         n_iteration += 1
         # distances: np.ndarray, shape=(k, gb_size), 表示每一个聚类中心和其他所有点的距离
         distances = np.sqrt(np.sum(np.square(gb_data-centroids[:, np.newaxis, :]), axis=2))
-
         # labels保存每一个样本的簇标签
         labels = np.argmin(distances, axis=0)
-
         # clusters保存每一个簇的数据点
         clusters = list()
         for i in range(k):
             # indices的作用：确保cluster保存的数据点的索引是在原始数据集中的索引
             cluster = indices[np.where(labels == i)[0]]
             clusters.append(cluster)
-
-        # 计算新的聚类中心
-        # new_centroids: np.ndarray, ndim=2, shape=(k, m_features)
+        # 计算新的聚类中心; new_centroids: np.ndarray, ndim=2, shape=(k, m_features)
         new_centroids = np.array([gb_data[labels == i].mean(axis=0) for i in range(k)])
-
         # TODO 阈值tolerance用于判断算法是否收敛
         if np.all(np.abs(new_centroids-centroids) < tolerance) or n_iteration > max_iterations:
             # 新聚类中心和旧聚类中心相比变化很小，或者达到最大跌打次数，则停止迭代，聚类完成
             break
-
         # 如果算法没有收敛，则更新聚类中心，进行下一次迭代
         centroids = new_centroids
 
@@ -130,9 +123,9 @@ def visualize_gbs(gbs, ax: plt.Axes):
 
         # 创建圆, 绘制数据点, 绘制圆, 绘制圆心
         circle = Circle((float_x, float_y), float_radius, fill=False, color='blue')
-        ax.scatter(gb_data[:, 0], gb_data[:, 1], color='black', marker='.', s=5)
         ax.add_artist(circle)
         ax.scatter(centroid[0], centroid[1], color='red', s=5)
+        ax.scatter(gb_data[:, 0], gb_data[:, 1], color='black', marker='.', s=5)
         ax.set_aspect('equal', adjustable='box')
 
     plt.tight_layout()
