@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 
 
 def kmeans(data: np.ndarray, k: int = 3, max_iterations: int = 100,
-           tolerance: float = 1e-4) -> tuple[np.ndarray, np.ndarray]:
+           tolerance: float = 1e-4) -> tuple[np.ndarray, list[np.ndarray]]:
     """
     K-Means算法实现(将kmeans升级为kmeans++)
     :param data: np.ndarray, shape=(n_samples, n_features), ndim=2
@@ -25,30 +25,31 @@ def kmeans(data: np.ndarray, k: int = 3, max_iterations: int = 100,
 
     # 初始化k个聚类中心和样本的簇标签
     centroids = data[np.random.choice(n_samples, k, replace=False)]
-    labels = np.full(n_samples, -1)
     # # 初始化clusters，无物理含义，只是为了符合函数返回值的数据类型
     # clusters = [np.zeros(k) for _ in range(k)]  # for循环迭代中要让clusters指向空列表
-    for _ in range(max_iterations):
+    n_iteration = 0
+    while True:
+        n_iteration += 1
         # distances是一个形状为(k, n_samples)的np.ndarray实例，表示每一个聚类中心和其他所有点的距离
         distances = np.sqrt(np.sum(np.square(data-centroids[:, np.newaxis, :]), axis=2))
 
-        # 为了和其他聚类算法保持一致，让函数返回clusters而不是labels
+        # 为了和其他聚类算法保持一致和计算聚类算法的有效性指标，让函数返回clusters而不是labels
         labels = np.argmin(distances, axis=0)
-        # clusters = list()
-        # for i in range(k):
-        #     clusters.append(np.where(labels == i)[0])
+        clusters = list()
+        for i in range(k):
+            clusters.append(np.where(labels == i)[0])
 
         # 更新聚类中心
         new_centroids = np.array([data[labels == i].mean(axis=0) for i in range(k)])
 
         # 检查算法是否收敛(收敛的条件有很多, 不唯一, 选择一种方法即可)
-        if np.all(np.abs(new_centroids - centroids) < tolerance):
+        if np.all(np.abs(new_centroids - centroids) < tolerance) or n_iteration > max_iterations:
             break  # 新聚类中心和旧聚类中心相比变化很小，则停止迭代，聚类完成
         centroids = new_centroids
 
     # centroids, ndim=2, shape=(k, m_features), 表示k个聚类中心
-    # labels, ndim=1, shape=(n_samples), 表示每一个数据点的标签
-    return centroids, labels
+    # labels, ndim=1, shape=(n_samples), 表示每一个数据点的簇标签
+    return centroids, clusters
 
 
 def three_way_kmeans(data: np.ndarray, k: int = 3, max_iterations: int = 100, tolerance: float = 1e-4,
@@ -136,32 +137,6 @@ def get_cores_fringes(clusters: list[np.ndarray]) -> tuple[list[set], list[set],
     return clusters, cores, fringes
 
 
-def get_cores_labels_data(data: np.ndarray, clusters: list[np.ndarray]) -> tuple[np.ndarray, np.ndarray]:
-    """根据3WK-Means的结果，计算每一个簇的核心域数据点的簇标签"""
-    k = len(clusters)
-    _, cores, _ = get_cores_fringes(clusters)
-    cores_indices = set()  # 计算cores中k个集合的并集
-    n_core_points = 0  # 计算所有簇核心域数据点的总数
-    for i in range(k):
-        cores_indices = cores_indices.union(cores[i])
-        n_core_points += len(cores[i])
-    cores_data = data[list(cores_indices)]
-
-    # 初始化核心域数据点的簇标签
-    labels_list = list()
-
-    for i in range(k):
-        labels = np.full(len(cores[i]), -1)
-        for j in range(len(cores[i])):
-            labels[j] = i
-        labels_list.append(labels)
-
-    # 将二维列表转换为一维列表
-    final_labels = [item for sublist in labels_list for item in sublist]
-    final_labels = np.array(final_labels)
-    return final_labels, cores_data
-
-
 def visualize_original_data(data: np.ndarray, ax: plt.Axes):
     """
     可视化原始数据
@@ -178,15 +153,23 @@ def visualize_original_data(data: np.ndarray, ax: plt.Axes):
 
 
 def visualize_kmeans_results(data: np.ndarray, centroids: np.ndarray,
-                             labels: np.ndarray, ax: plt.Axes):
+                             clusters: list[np.ndarray], ax: plt.Axes):
     """
     K-Means聚类结果可视化
     :param data: np.ndarray, shape=(n_samples, m_features), ndim=2
     :param centroids: np.ndarray, shape=(k, m_features), ndim=1
-    :param labels: np.ndarray, shape=(n_samples), the cluster label for each sample
+    :param clusters: np.ndarray, shape=(n_samples), the cluster label for each sample
     :param ax: an instance of plt.Axes
     :return: None
     """
+    # 根据clusters计算样本的簇标签
+    k = len(clusters)
+    labels = [-1 for _ in range(len(data))]
+    for i in range(k):
+        for sample_idx in clusters[i]:
+            labels[sample_idx] = i
+    labels = np.array(labels)
+
     # 绘制数据点
     ax.scatter(data[:, 0], data[:, 1], c=labels, cmap='viridis', s=5, marker='.')
     # 绘制聚类中心
@@ -257,14 +240,14 @@ def main() -> None:
     # data = pd.read_csv('./datasets_from_gbsc/D8.csv').to_numpy()
 
     # 获取K-Means聚类结果
-    centroids1, labels = kmeans(data, k=3)
+    centroids1, clusters1 = kmeans(data, k=3)
     # 获取3WK-Means聚类结果, 3WK-Means的思想来源于王平心老师的三支K-Means论文
     centroids2, clusters2 = three_way_kmeans(data, k=3, epsilon=2.64)
 
     # 数据可视化
     fig, (ax0, ax1, ax2) = plt.subplots(1, 3, figsize=(12, 4))
     visualize_original_data(data, ax0)
-    visualize_kmeans_results(data, centroids1, labels, ax1)
+    visualize_kmeans_results(data, centroids1, clusters1, ax1)
     visualize_twkmeans_results(data, centroids2, clusters2, ax2)
 
     # 图片布局设置
