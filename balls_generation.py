@@ -103,7 +103,7 @@ def generate_gbs() -> list[GranularBall]:
 
 
 def verify_gbs(gbs: list[GranularBall]) -> None:
-    """使用Python中集合的特性，验证生成的粒球空间的正确性"""
+    """利用Python中集合的特性，验证生成的粒球空间的正确性"""
     size = len(gbs)
 
     # 两两(粒球的数据索引)互不相交，则生成的粒球空间正确
