@@ -137,7 +137,7 @@ def get_cores_fringes(clusters: list[np.ndarray]) -> tuple[list[set], list[set],
     return clusters, cores, fringes
 
 
-def visualize_original_data(data: np.ndarray, ax: plt.Axes):
+def visualize_original_data(data: np.ndarray, ax: plt.Axes) -> None:
     """
     可视化原始数据
     :param data: np.ndarray, shape=(n_samples, m_features), ndim=2
@@ -153,7 +153,7 @@ def visualize_original_data(data: np.ndarray, ax: plt.Axes):
 
 
 def visualize_kmeans_results(data: np.ndarray, centroids: np.ndarray,
-                             clusters: list[np.ndarray], ax: plt.Axes):
+                             clusters: list[np.ndarray], ax: plt.Axes) -> None:
     """
     K-Means聚类结果可视化
     :param data: np.ndarray, shape=(n_samples, m_features), ndim=2
@@ -183,7 +183,8 @@ def visualize_kmeans_results(data: np.ndarray, centroids: np.ndarray,
     ax.set_aspect('equal', adjustable='box')
 
 
-def visualize_twkmeans_results(data: np.ndarray, centers, clusters, ax):
+def visualize_twkmeans_results(data: np.ndarray, centers: np.ndarray,
+                               clusters: list[np.ndarray], ax: plt.Axes) -> None:
     """
     3WK-Means聚类结果可视化
     :param data: np.ndarray, shape=(n_samples, m_features), ndim=2

@@ -1,6 +1,7 @@
 from collections import deque
 
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.patches import Circle
 
@@ -8,7 +9,8 @@ from kmeans import visualize_original_data
 
 # TODO data is a global variable
 # TODO data, np.ndarray, ndim=2, shape=(n_sample, m_features)
-data = np.loadtxt('sample.txt')
+# data = np.loadtxt('sample.txt')
+data = pd.read_csv('./datasets_from_gbsc/D7.csv').to_numpy()
 
 
 class GranularBall:
@@ -32,8 +34,12 @@ class GranularBall:
         return np.max(np.sqrt(np.sum(np.square(self.get_gb_data() - self.get_centroid()), axis=1)))
 
 
-def kmeans(indices: np.ndarray, k: int = 2, max_iterations: int = 100, tolerance: float = 1e-4):
-    """用于将一个粒球划分为两个粒球的K-Means聚类算法"""
+def kmeans(indices: np.ndarray, k: int = 2, max_iterations: int = 100,
+           tolerance: float = 1e-4) -> list[np.ndarray]:
+    """
+    用于将一个粒球划分为两个粒球的K-Means聚类算法
+    indices表示被划分的粒球的数据点在原始数据集中的索引
+    """
 
     # 从data中复制属于gb的数据
     gb_data = data[indices]
@@ -115,7 +121,7 @@ def verify_gbs(gbs: list[GranularBall]) -> None:
                 raise ValueError("Wrong Granular Ball Space")
 
 
-def visualize_gbs(gbs, ax: plt.Axes):
+def visualize_gbs(gbs: list[GranularBall], ax: plt.Axes) -> None:
     """可视化粒球空间"""
     for i, gb in enumerate(gbs):
         # 获取粒球的数据、质心和半径
