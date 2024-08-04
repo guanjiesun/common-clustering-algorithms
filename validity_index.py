@@ -1,4 +1,6 @@
 import numpy as np
+# from sklearn.metrics import silhouette_score as ss
+# from sklearn.metrics import davies_bouldin_score as dbi
 
 # from kmeans import kmeans as kms
 # from kmeans import three_way_kmeans as twkms
@@ -11,7 +13,6 @@ def calculate_dbi(data: np.ndarray, clusters: list[np.ndarray]):
 def main() -> None:
     """计算K-Means和3WK-Means算法的DBI"""
     # data = np.loadtxt('sample.txt')
-    #
     # _, labels = kms(data, k=3)
     # dbi_score = dbi(data, labels)
     # ss_score = ss(data, labels)

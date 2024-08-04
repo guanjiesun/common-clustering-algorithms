@@ -109,7 +109,7 @@ def three_way_kmeans(data: np.ndarray, k: int = 3, max_iterations: int = 100, to
         centroids = new_centroids
 
     # centroids, ndim=2, shape=(k, m_features), 表示k个聚类中心
-    # clusters是包含k个元素的列表，每个列表元素存储每个簇的支集
+    # clusters: list[np.ndarray], len(clusters)=k, 每个列表元素存储属于该簇的样本
     return centroids, clusters
 
 
@@ -146,7 +146,7 @@ def visualize_original_data(data: np.ndarray, ax: plt.Axes):
     """
     # 在聚类之前可视化数据分布
     ax.scatter(data[:, 0], data[:, 1], s=5, marker='.', color='black')
-    ax.set_title('Visualization Before Clustering')
+    ax.set_title('Original Data')
     ax.set_xlabel('Feature 1')
     ax.set_ylabel('Feature 2')
     ax.set_aspect('equal', adjustable='box')
@@ -162,7 +162,7 @@ def visualize_kmeans_results(data: np.ndarray, centroids: np.ndarray,
     :param ax: an instance of plt.Axes
     :return: None
     """
-    # 根据clusters计算样本的簇标签
+    # 根据clusters计算所有样本的簇标签
     k = len(clusters)
     labels = [-1 for _ in range(len(data))]
     for i in range(k):
@@ -172,17 +172,18 @@ def visualize_kmeans_results(data: np.ndarray, centroids: np.ndarray,
 
     # 绘制数据点
     ax.scatter(data[:, 0], data[:, 1], c=labels, cmap='viridis', s=5, marker='.')
+
     # 绘制聚类中心
     ax.scatter(centroids[:, 0], centroids[:, 1], c='red', s=50, marker='.')
 
     # 设置图片属性和样式
-    ax.set_title('Visualization After K-Means Clustering')
+    ax.set_title('K-Means Clustering')
     ax.set_xlabel('Feature 1')
     ax.set_ylabel('Feature 2')
     ax.set_aspect('equal', adjustable='box')
 
 
-def visualize_twkmeans_results(data, centers, clusters, ax):
+def visualize_twkmeans_results(data: np.ndarray, centers, clusters, ax):
     """
     3WK-Means聚类结果可视化
     :param data: np.ndarray, shape=(n_samples, m_features), ndim=2
@@ -220,7 +221,7 @@ def visualize_twkmeans_results(data, centers, clusters, ax):
     ax.scatter(centers[:, 0], centers[:, 1], c='red', s=50, marker='.')
 
     # 设置图表标题，x轴标题，y轴标题
-    ax.set_title('Visualization After 3WK-Means Clustering')
+    ax.set_title('3WK-Means Clustering')
     ax.set_xlabel('Feature 1')
     ax.set_ylabel('Feature 2')
     ax.set_aspect('equal', adjustable='box')
@@ -236,12 +237,10 @@ def main() -> None:
     """
     # 生成数据
     data = np.loadtxt('sample.txt')
-    # import pandas as pd
-    # data = pd.read_csv('./datasets_from_gbsc/D8.csv').to_numpy()
 
     # 获取K-Means聚类结果
     centroids1, clusters1 = kmeans(data, k=3)
-    # 获取3WK-Means聚类结果, 3WK-Means的思想来源于王平心老师的三支K-Means论文
+    # 获取3WK-Means聚类结果
     centroids2, clusters2 = three_way_kmeans(data, k=3, epsilon=2.64)
 
     # 数据可视化

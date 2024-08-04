@@ -130,6 +130,7 @@ def visualize_gbs(gbs, ax: plt.Axes):
         ax.add_artist(circle)
         ax.scatter(centroid[0], centroid[1], color='red', s=5)
         ax.scatter(gb_data[:, 0], gb_data[:, 1], color='black', marker='.', s=5)
+        ax.set_title("Granular Ball Space")
         ax.set_aspect('equal', adjustable='box')
 
     plt.tight_layout()
