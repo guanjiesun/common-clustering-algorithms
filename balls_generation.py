@@ -49,18 +49,21 @@ def kmeans(indices: np.ndarray, k: int = 2, max_iterations: int = 100, tolerance
         distances = np.sqrt(np.sum(np.square(gb_data-centroids[:, np.newaxis, :]), axis=2))
         # labels保存每一个样本的簇标签
         labels = np.argmin(distances, axis=0)
+
         # clusters保存每一个簇的数据点
         clusters = list()
         for i in range(k):
             # indices的作用：确保cluster保存的数据点的索引是在原始数据集中的索引
             cluster = indices[np.where(labels == i)[0]]
             clusters.append(cluster)
+
         # 计算新的聚类中心; new_centroids: np.ndarray, ndim=2, shape=(k, m_features)
         new_centroids = np.array([gb_data[labels == i].mean(axis=0) for i in range(k)])
         # TODO 阈值tolerance用于判断算法是否收敛
         if np.all(np.abs(new_centroids-centroids) < tolerance) or n_iteration > max_iterations:
             # 新聚类中心和旧聚类中心相比变化很小，或者达到最大跌打次数，则停止迭代，聚类完成
             break
+
         # 如果算法没有收敛，则更新聚类中心，进行下一次迭代
         centroids = new_centroids
 
