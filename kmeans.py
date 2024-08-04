@@ -53,7 +53,7 @@ def kmeans(data: np.ndarray, k: int = 3, max_iterations: int = 100,
 
 
 def three_way_kmeans(data: np.ndarray, k: int = 3, max_iterations: int = 100, tolerance: float = 1e-4,
-                     epsilon: float = 2.5) -> tuple[np.ndarray, list[np.ndarray]]:
+                     epsilon: float = 2.64) -> tuple[np.ndarray, list[np.ndarray]]:
     """
     三支K-Means，每一个簇有核心域和边缘域两个集合表示
     原则：每一个数据点只能属于一个簇的核心域，但是可以属于一个或者多个簇的边缘域
@@ -174,7 +174,7 @@ def visualize_kmeans_results(data: np.ndarray, centroids: np.ndarray,
     ax.scatter(data[:, 0], data[:, 1], c=labels, cmap='viridis', s=5, marker='.')
 
     # 绘制聚类中心
-    ax.scatter(centroids[:, 0], centroids[:, 1], c='red', s=50, marker='.')
+    ax.scatter(centroids[:, 0], centroids[:, 1], c='red', s=50, marker='x')
 
     # 设置图片属性和样式
     ax.set_title('K-Means Clustering')
@@ -219,7 +219,7 @@ def visualize_twkmeans_results(data: np.ndarray, centers: np.ndarray,
     ax.scatter(fringe_data[:, 0], fringe_data[:, 1], c='black', s=5, marker='.')
 
     # 绘制聚类中心
-    ax.scatter(centers[:, 0], centers[:, 1], c='red', s=50, marker='.')
+    ax.scatter(centers[:, 0], centers[:, 1], c='red', s=50, marker='x')
 
     # 设置图表标题，x轴标题，y轴标题
     ax.set_title('3WK-Means Clustering')
