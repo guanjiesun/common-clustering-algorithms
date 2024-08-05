@@ -58,7 +58,7 @@ def calculate_dbi(data: np.ndarray, clusters: list[np.ndarray]):
     return np.mean(dbi_list)
 
 
-def get_labels(clusters):
+def get_labels(clusters: list[np.ndarray]) -> np.ndarray:
     """根据K-Means生成的clusters，求出每一个样本的簇标签"""
     k = len(clusters)
 
@@ -66,8 +66,9 @@ def get_labels(clusters):
     n_samples = 0
     for i in range(k):
         n_samples += len(clusters[i])
-    labels = np.full(n_samples, -1)
 
+    # 初始化每一个样本的簇标签
+    labels = np.full(n_samples, -1)
     # 给每一个样本赋值一个簇标签
     for i in range(k):
         for sample_idx in clusters[i]:
