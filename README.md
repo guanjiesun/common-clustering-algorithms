@@ -11,3 +11,4 @@
 - numpy 1.26.4
 - pandas 2.2.2
 - matplotlib 3.9.1
+- scikit-learn 1.5.1
