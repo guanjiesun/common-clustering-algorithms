@@ -51,7 +51,7 @@ def kmeans(indices: np.ndarray, k: int = 2, max_iterations: int = 100,
     n_iteration = 0
     while True:
         n_iteration += 1
-        # distances: np.ndarray, shape=(k, gb_size), 表示每一个聚类中心和其他所有点的距离
+        # distances: np.ndarray, shape=(k, gb_size), 表示每一个聚类中心到其他所有点的距离
         distances = np.sqrt(np.sum(np.square(gb_data-centroids[:, np.newaxis, :]), axis=2))
         # labels保存每一个样本的簇标签
         labels = np.argmin(distances, axis=0)
@@ -60,6 +60,7 @@ def kmeans(indices: np.ndarray, k: int = 2, max_iterations: int = 100,
         clusters = list()
         for i in range(k):
             # indices的作用：确保cluster保存的数据点的索引是在原始数据集中的索引
+            # TODO 一定要保证cluster保存的数据点的索引是在原始数据集中的索引
             cluster = indices[np.where(labels == i)[0]]
             clusters.append(cluster)
 
@@ -128,8 +129,7 @@ def visualize_gbs(gbs: list[GranularBall], ax: plt.Axes) -> None:
         gb_data, centroid, radius = data[gb.indices], gb.get_centroid(), gb.get_radius()
 
         # float_x, float_y和float_radius是为了符合Circle函数对参数数据类型的要求
-        float_x, float_y = float(centroid[0]), float(centroid[1])
-        float_radius = float(radius)
+        float_x, float_y, float_radius = float(centroid[0]), float(centroid[1]), float(radius)
 
         # 创建圆, 绘制数据点, 绘制圆, 绘制圆心
         circle = Circle((float_x, float_y), float_radius, fill=False, color='blue')
