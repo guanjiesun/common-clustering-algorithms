@@ -131,6 +131,8 @@ def get_cores_fringes(clusters: list[np.ndarray]) -> tuple[list[np.array], list[
     clusters = [set(clusters[i]) for i in range(k)]  # clusters[np.ndarray] -> clusters[set]
     cores = [set() for _ in range(k)]
     fringes = [set() for _ in range(k)]
+
+    # 求出每一个簇的核心域和边缘域
     for i in range(k):
         # cores[i]的初始化很重要，需要熟悉集合的运算
         cores[i] = clusters[i]
@@ -144,6 +146,7 @@ def get_cores_fringes(clusters: list[np.ndarray]) -> tuple[list[np.array], list[
     clusters = [np.array(list(cluster)) for cluster in clusters]
     cores = [np.array(list(core)) for core in cores]
     fringes = [np.array(list(fringe)) for fringe in fringes]
+
     # clusters是包含k个元素的列表, 每个元素是一维np.ndarray数组; cores和fringes同理
     return clusters, cores, fringes
 
