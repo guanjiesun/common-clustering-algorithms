@@ -127,19 +127,20 @@ def get_cores_fringes(clusters: list[np.ndarray]) -> tuple[list[np.array], list[
     """
     # TODO 如果clusters是K-Means产生的，也会返回正确的结果（边界域为空集）；3WK-Means就是K-Means的泛化模型！
     k = len(clusters)
+
     # np.ndarray转换为集合，方便运算
     clusters = [set(clusters[i]) for i in range(k)]  # clusters[np.ndarray] -> clusters[set]
     cores = [set() for _ in range(k)]
     fringes = [set() for _ in range(k)]
 
-    # 求出每一个簇的核心域和边缘域
+    # 计算每一个簇的核心域和边缘域
     for i in range(k):
-        # cores[i]的初始化很重要，需要熟悉集合的运算
         cores[i] = clusters[i]
         for j in range(k):
             if i != j:
+                # 簇i核心域的样本点只能在i中，不能在任何其它簇中出现
                 cores[i] = cores[i].intersection(clusters[i].difference(clusters[j]))
-
+        # cores[i]和fringes[i]的并集就是clusters[i]，clusters[i]亦称为簇i的支集
         fringes[i] = clusters[i].difference(cores[i])
 
     # 列表中的元素由集合转换为np.ndarray
