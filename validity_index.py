@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.spatial.distance import cdist
 from sklearn.metrics import pairwise_distances
 from sklearn.metrics import silhouette_score
 from sklearn.metrics import davies_bouldin_score
@@ -59,14 +60,17 @@ def calculate_dbi(data: np.ndarray, clusters: list[np.ndarray]):
 
 
 def calculate_silhouette_score(data: np.ndarray, clusters: list[np.ndarray]):
-    """计算所有样本的平均轮廓系数Average Silhouette index, [-1, 1], 平均轮廓系数越接近1越好"""
+    """
+    TODO 此函数的计算结果和sklearn.metrics.davies_bouldin_score函数的结果一致！！！
+    计算所有样本的平均轮廓系数Average Silhouette index, [-1, 1], 平均轮廓系数越接近1越好
+    """
     k = len(clusters)
     # TODO 让每一个簇的核心域参与计算，不要包括边缘域
-    # 如果clusters是K-Means产生的，那么cores和clusters相同
+    # 如果clusters是K-Means产生的，那么cores和clusters相同(因为边界域是空集)
     _, cores, _ = get_cores_fringes(clusters)
     # cores_1d = np.unique(np.concatenate(cores))  # cores_1d是cores的一维形式
 
-    # 计算每一个点到簇内其他点的平均距离
+    # 计算每一个点到簇内其他点距离的平均值
     distances1 = list()
     for i in range(k):
         # 簇i内数据点的距离矩阵
@@ -76,7 +80,27 @@ def calculate_silhouette_score(data: np.ndarray, clusters: list[np.ndarray]):
     # 计算簇每一个点到其他簇的平均距离中的最小值
     distances2 = list()
     for i in range(k):
-        pass
+        distances = list()
+        for j in range(k):
+            if j != i:
+                # distance存储簇i的所有点到簇j的所有点的距离
+                distance = cdist(data[cores[i]], data[cores[j]])
+                distances.append(np.sum(distance, axis=1) / len(cores[j]))
+
+        distances = np.array(distances)
+        distances2.append(np.min(distances, axis=0))
+
+    # 计算每一个点的轮廓
+    silhouette = list()
+    for i in range(k):
+        for j in range(len(cores[i])):
+            b = distances2[i][j]
+            a = distances1[i][j]
+            s = (b-a) / np.max([a, b])
+            silhouette.append(s)
+
+    # 计算数据集的平均轮廓
+    return np.mean(silhouette)
 
 
 def get_labels(clusters: list[np.ndarray]) -> np.ndarray:
@@ -105,20 +129,26 @@ def main() -> None:
 
     # 应用聚类算法
     _, clusters = kms(data, k=3)
+    labels = get_labels(clusters)
     _, clusters_3w = twkms(data, k=3, epsilon=2.64)
 
     # 计算DBI
     dbi_score = calculate_dbi(data, clusters)
     dbi_score_3w = calculate_dbi(data, clusters_3w)
-    labels = get_labels(clusters)
-    dbi_std = davies_bouldin_score(data, labels)
+    dbi_score_std = davies_bouldin_score(data, labels)
 
     # 计算ASI
-    asi_std = silhouette_score(data, labels)
-    print(asi_std)
+    asi_score = calculate_silhouette_score(data, clusters)
+    asi_score_3w = calculate_silhouette_score(data, clusters_3w)
+    asi_score_std = silhouette_score(data, labels)
 
     # 打印结果
-    print(np.round(dbi_score, 4), np.round(dbi_std, 4), np.round(dbi_score_3w, 4))
+    print(np.round(dbi_score, 4))
+    print(np.round(dbi_score_std, 4))
+    print(np.round(dbi_score_3w, 4))
+    print(np.round(asi_score_std, 4))
+    print(np.round(asi_score, 4))
+    print(np.round(asi_score_3w, 4))
 
 
 if __name__ == '__main__':
