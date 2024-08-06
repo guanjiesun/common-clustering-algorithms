@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 from scipy.spatial.distance import cdist
 from sklearn.metrics import pairwise_distances
 from sklearn.metrics import silhouette_score
@@ -62,7 +63,7 @@ def calculate_dbi(data: np.ndarray, clusters: list[np.ndarray]) -> float:
 
 def calculate_silhouette_score(data: np.ndarray, clusters: list[np.ndarray]) -> float:
     """
-    TODO 此函数的计算结果和sklearn.metrics.davies_bouldin_score函数的结果一致！！！
+    TODO 此函数的计算结果和sklearn.metrics.silhouette_score函数的结果一致！！！
     计算所有样本的平均轮廓系数Average Silhouette index, [-1, 1], 平均轮廓系数越接近1越好
     """
     k = len(clusters)
@@ -104,6 +105,7 @@ def calculate_silhouette_score(data: np.ndarray, clusters: list[np.ndarray]) -> 
 
 
 def calculate_chi(data: np.ndarray, clusters: list[np.ndarray]) -> float:
+    # TODO 此函数的计算结果和sklearn.metrics.calinski_harabasz_score函数的结果一致！！！
     # 计算calinski harabasz score(方差比准则, 簇间紧密度与簇内紧密度的比值)
     k = len(clusters)
     # TODO 让每一个簇的核心域参与计算，不要包括边缘域
@@ -190,16 +192,15 @@ def main() -> None:
     chi_score_3w = calculate_chi(data, clusters_3w)
     chi_score_std = calinski_harabasz_score(data, labels)
 
-    # 打印结果
-    print(np.round(dbi_score, 4))
-    print(np.round(dbi_score_std, 4))
-    print(np.round(dbi_score_3w, 4))
-    print(np.round(asi_score_std, 4))
-    print(np.round(asi_score, 4))
-    print(np.round(asi_score_3w, 4))
-    print(np.round(chi_score, 4))
-    print(np.round(chi_score_std, 4))
-    print(np.round(chi_score_3w, 4))
+    # 设置字典和DataFrame
+    index = ['DBI', 'ASI', 'CHI']
+    dictionary = {
+        "K-Means(std)": np.round([dbi_score_std, asi_score_std, chi_score_std], 4),
+        "K-Means": np.round([dbi_score, asi_score, chi_score], 4),
+        "3WK-Means": np.round([dbi_score_3w, asi_score_3w, chi_score_3w], 4),
+    }
+    df = pd.DataFrame(dictionary, index=index)
+    print(df)
 
 
 if __name__ == '__main__':
