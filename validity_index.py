@@ -2,13 +2,14 @@ import numpy as np
 import pandas as pd
 from scipy.spatial.distance import cdist
 from sklearn.metrics import pairwise_distances
-from sklearn.metrics import silhouette_score
-from sklearn.metrics import davies_bouldin_score
-from sklearn.metrics import calinski_harabasz_score
+from sklearn.metrics import silhouette_score as asi
+from sklearn.metrics import davies_bouldin_score as dbi
+from sklearn.metrics import calinski_harabasz_score as chi
 
 from kmeans import kmeans as kms
 from kmeans import three_way_kmeans as twkms
 from kmeans import get_cores_fringes
+from kmeans import get_data_labels
 
 
 def calculate_dbi(data: np.ndarray, clusters: list[np.ndarray]) -> float:
@@ -148,56 +149,44 @@ def calculate_chi(data: np.ndarray, clusters: list[np.ndarray]) -> float:
     return (np.trace(b_matrices) / (k-1)) / (np.trace(w_matrices) / (n-k))
 
 
-def get_labels(clusters: list[np.ndarray]) -> np.ndarray:
-    """根据K-Means生成的clusters，求出每一个样本的簇标签"""
-    k = len(clusters)
-
-    # 计算样本总数
-    n_samples = 0
-    for i in range(k):
-        n_samples += len(clusters[i])
-
-    # 初始化每一个样本的簇标签
-    labels = np.full(n_samples, -1)
-    # 给每一个样本赋值一个簇标签
-    for i in range(k):
-        for sample_idx in clusters[i]:
-            labels[sample_idx] = i
-
-    return labels
-
-
 def main() -> None:
     """计算K-Means和3WK-Means算法的DBI"""
     # 导入数据
     data = np.loadtxt('sample.txt')
 
-    # 应用聚类算法
+    # 对于K-Means, get_labels_data返回的数据集就是data的复制品
     _, clusters = kms(data, k=3)
-    labels = get_labels(clusters)
+    _, labels = get_data_labels(data, clusters)
+
+    # 获取核心域的数据集和每一个样本的簇标签
     _, clusters_3w = twkms(data, k=3, epsilon=2.64)
+    cores_data, cores_labels = get_data_labels(data, clusters_3w)
 
     # 计算DBI
-    dbi_score = calculate_dbi(data, clusters)
-    dbi_score_3w = calculate_dbi(data, clusters_3w)
-    dbi_score_std = davies_bouldin_score(data, labels)
+    dbi_kms = calculate_dbi(data, clusters)
+    dbi_kms_std = dbi(data, labels)
+    dbi_3w = calculate_dbi(data, clusters_3w)
+    dbi_3w_std = dbi(cores_data, cores_labels)
 
     # 计算ASI
-    asi_score = calculate_silhouette_score(data, clusters)
-    asi_score_3w = calculate_silhouette_score(data, clusters_3w)
-    asi_score_std = silhouette_score(data, labels)
+    asi_kms = calculate_silhouette_score(data, clusters)
+    asi_kms_std = asi(data, labels)
+    asi_3w = calculate_silhouette_score(data, clusters_3w)
+    asi_3w_std = asi(cores_data, cores_labels)
 
     # 计算CHI
-    chi_score = calculate_chi(data, clusters)
-    chi_score_3w = calculate_chi(data, clusters_3w)
-    chi_score_std = calinski_harabasz_score(data, labels)
+    chi_kms = calculate_chi(data, clusters)
+    chi_kms_std = chi(data, labels)
+    chi_3w = calculate_chi(data, clusters_3w)
+    chi_3w_std = chi(cores_data, cores_labels)
 
     # 设置字典和DataFrame
     index = ['DBI', 'ASI', 'CHI']
     dictionary = {
-        "K-Means(std)": np.round([dbi_score_std, asi_score_std, chi_score_std], 4),
-        "K-Means": np.round([dbi_score, asi_score, chi_score], 4),
-        "3WK-Means": np.round([dbi_score_3w, asi_score_3w, chi_score_3w], 4),
+        "K-Means(std)": np.round([dbi_kms_std, asi_kms_std, chi_kms_std], 4),
+        "K-Means": np.round([dbi_kms, asi_kms, chi_kms], 4),
+        "3WK-Means": np.round([dbi_3w, asi_3w, chi_3w], 4),
+        "3WK-Means(std)": np.round([dbi_3w_std, asi_3w_std, chi_3w_std], 4),
     }
     df = pd.DataFrame(dictionary, index=index)
     print(df)
