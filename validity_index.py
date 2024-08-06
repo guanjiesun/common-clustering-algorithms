@@ -3,13 +3,14 @@ from scipy.spatial.distance import cdist
 from sklearn.metrics import pairwise_distances
 from sklearn.metrics import silhouette_score
 from sklearn.metrics import davies_bouldin_score
+from sklearn.metrics import calinski_harabasz_score
 
 from kmeans import kmeans as kms
 from kmeans import three_way_kmeans as twkms
 from kmeans import get_cores_fringes
 
 
-def calculate_dbi(data: np.ndarray, clusters: list[np.ndarray]):
+def calculate_dbi(data: np.ndarray, clusters: list[np.ndarray]) -> float:
     """
     TODO 此函数的计算结果和sklearn.metrics.davies_bouldin_score函数的结果一致！！！
     DBI是聚类算法的一个validity index(performance metrics), DBI越小越好
@@ -59,7 +60,7 @@ def calculate_dbi(data: np.ndarray, clusters: list[np.ndarray]):
     return np.mean(dbi_list)
 
 
-def calculate_silhouette_score(data: np.ndarray, clusters: list[np.ndarray]):
+def calculate_silhouette_score(data: np.ndarray, clusters: list[np.ndarray]) -> float:
     """
     TODO 此函数的计算结果和sklearn.metrics.davies_bouldin_score函数的结果一致！！！
     计算所有样本的平均轮廓系数Average Silhouette index, [-1, 1], 平均轮廓系数越接近1越好
@@ -68,7 +69,6 @@ def calculate_silhouette_score(data: np.ndarray, clusters: list[np.ndarray]):
     # TODO 让每一个簇的核心域参与计算，不要包括边缘域
     # 如果clusters是K-Means产生的，那么cores和clusters相同(因为边界域是空集)
     _, cores, _ = get_cores_fringes(clusters)
-    # cores_1d = np.unique(np.concatenate(cores))  # cores_1d是cores的一维形式
 
     # 计算每一个点到簇内其他点距离的平均值
     distances1 = list()
@@ -101,6 +101,49 @@ def calculate_silhouette_score(data: np.ndarray, clusters: list[np.ndarray]):
 
     # 计算数据集的平均轮廓
     return np.mean(silhouette)
+
+
+def calculate_chi(data: np.ndarray, clusters: list[np.ndarray]) -> float:
+    # 计算calinski harabasz score(方差比准则, 簇间紧密度与簇内紧密度的比值)
+    k = len(clusters)
+    # TODO 让每一个簇的核心域参与计算，不要包括边缘域
+    # 如果clusters是K-Means产生的，那么cores和clusters相同(因为边界域是空集)
+    _, cores, _ = get_cores_fringes(clusters)
+    # cores_1d是cores的一维形式
+    cores_1d = np.unique(np.concatenate(cores))
+
+    # 计算核心域中的样本数量n和样本的特征数m
+    n = len(cores_1d)
+    m = data.shape[1]
+
+    # 计算核心域的全局中心
+    global_centroid = np.mean(data[cores_1d], axis=0)
+
+    # 计算每个簇的中心
+    centroids = list()
+    for i in range(k):
+        centroids.append(np.mean(data[cores[i]], axis=0))
+    centroids = np.array(centroids)
+
+    # 计算类间散布矩阵b_matrices
+    b_matrices = np.full((m, m), 0, dtype=np.float64)
+    for i in range(k):
+        centroid = centroids[i]
+        n_i = len(cores[i])
+        matrix = n_i * np.outer(centroid-global_centroid, centroid-global_centroid)
+        b_matrices += matrix
+
+    # 计算类内散布矩阵w_matrices
+    w_matrices = np.full((m, m), 0, dtype=np.float64)
+    for i in range(k):
+        centroid = centroids[i]
+        matrix = np.full((m, m), 0, dtype=np.float64)
+        for sample_idx in cores[i]:
+            matrix += np.outer(data[sample_idx]-centroid, data[sample_idx]-centroid)
+        w_matrices += matrix
+
+    # 计算方差比准则
+    return (np.trace(b_matrices) / (k-1)) / (np.trace(w_matrices) / (n-k))
 
 
 def get_labels(clusters: list[np.ndarray]) -> np.ndarray:
@@ -142,6 +185,11 @@ def main() -> None:
     asi_score_3w = calculate_silhouette_score(data, clusters_3w)
     asi_score_std = silhouette_score(data, labels)
 
+    # 计算CHI
+    chi_score = calculate_chi(data, clusters)
+    chi_score_3w = calculate_chi(data, clusters_3w)
+    chi_score_std = calinski_harabasz_score(data, labels)
+
     # 打印结果
     print(np.round(dbi_score, 4))
     print(np.round(dbi_score_std, 4))
@@ -149,6 +197,9 @@ def main() -> None:
     print(np.round(asi_score_std, 4))
     print(np.round(asi_score, 4))
     print(np.round(asi_score_3w, 4))
+    print(np.round(chi_score, 4))
+    print(np.round(chi_score_std, 4))
+    print(np.round(chi_score_3w, 4))
 
 
 if __name__ == '__main__':
