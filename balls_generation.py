@@ -31,7 +31,7 @@ class GranularBall:
 
 
 def kmeans(indices: np.ndarray, k: int = 2, max_iterations: int = 100,
-           tolerance: float = 1e-4) -> list[np.ndarray]:
+           tolerance: float = 1e-4) -> tuple[GranularBall, GranularBall]:
     """
     用于将一个粒球划分为两个粒球的K-Means聚类算法
     indices表示被划分的粒球的数据点在原始数据集中的索引
@@ -75,13 +75,7 @@ def kmeans(indices: np.ndarray, k: int = 2, max_iterations: int = 100,
         # 若算法未收敛，则更新聚类中心
         centroids = new_centroids
 
-    # 求出粒球的划分即可，不需要每一个划分的中心点
-    return clusters
-
-
-def split_granular_ball(gb: GranularBall) -> (GranularBall, GranularBall):
-    """使用2-Means算法将gb划分为两个子粒球"""
-    clusters = kmeans(gb.indices, 2)
+    # 求出粒球的划分
     gb_child1 = GranularBall(clusters[0])
     gb_child2 = GranularBall(clusters[1])
 
@@ -103,7 +97,7 @@ def generate_gbs() -> list[GranularBall]:
         gb = queue.popleft()  # 使用popleft而不是pop是因为要保持queue先进先出的特性
         if len(gb.indices) > threshold:
             # 如果gb太大，则使用2means算法将gb划分为两个更小的粒球，然后两个小粒球入队
-            queue.extend(split_granular_ball(gb))
+            queue.extend(kmeans(gb.indices))
         else:
             gbs.append(gb)
 
@@ -114,7 +108,7 @@ def verify_gbs(gbs: list[GranularBall]) -> None:
     """利用Python中集合的特性，验证生成的粒球空间的正确性"""
     size = len(gbs)
 
-    # 两两(粒球的数据索引)互不相交，则生成的粒球空间正确
+    # 任意两个粒球的indices互不相交，则生成的粒球空间正确
     for i in range(size):
         set_i = set(gbs[i].indices)
         for j in range(i+1, size):
@@ -161,5 +155,5 @@ if __name__ == '__main__':
     # TODO data is a global variable
     # data, np.ndarray, ndim=2, shape=(n_sample, m_features)
     # data = np.loadtxt('sample.txt')
-    data = pd.read_csv('./datasets_from_gbsc/D7.csv').to_numpy()
+    data = pd.read_csv('./datasets_from_gbsc/D5.csv').to_numpy()
     main()
