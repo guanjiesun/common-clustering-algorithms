@@ -4,13 +4,9 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.patches import Circle
+from sklearn.metrics import pairwise_distances
 
 from kmeans import visualize_original_data
-
-# TODO data is a global variable
-# TODO data, np.ndarray, ndim=2, shape=(n_sample, m_features)
-# data = np.loadtxt('sample.txt')
-data = pd.read_csv('./datasets_from_gbsc/D7.csv').to_numpy()
 
 
 class GranularBall:
@@ -45,14 +41,19 @@ def kmeans(indices: np.ndarray, k: int = 2, max_iterations: int = 100,
     gb_data = data[indices]
     gb_size = len(gb_data)
 
-    # 初始化k个聚类中心; centroids: np.ndarray, ndim=2, shape=(k, m_features)
+    # 初始化k个聚类中心
     np.random.seed(gb_size)
+    # centroids: np.ndarray, shape = (k, m_features)
     centroids = gb_data[np.random.choice(gb_size, k, replace=False)]
+
+    # 开始迭代
     n_iteration = 0
     while True:
         n_iteration += 1
+
         # distances: np.ndarray, shape=(k, gb_size), 表示每一个聚类中心到其他所有点的距离
-        distances = np.sqrt(np.sum(np.square(gb_data-centroids[:, np.newaxis, :]), axis=2))
+        distances = pairwise_distances(centroids, gb_data)
+
         # labels保存每一个样本的簇标签
         labels = np.argmin(distances, axis=0)
 
@@ -64,14 +65,14 @@ def kmeans(indices: np.ndarray, k: int = 2, max_iterations: int = 100,
             cluster = indices[np.where(labels == i)[0]]
             clusters.append(cluster)
 
-        # 计算新的聚类中心; new_centroids: np.ndarray, ndim=2, shape=(k, m_features)
+        # 计算新的聚类中心new_centroids: np.ndarray, shape=(k, m_features)
         new_centroids = np.array([gb_data[labels == i].mean(axis=0) for i in range(k)])
+
         # TODO 阈值tolerance用于判断算法是否收敛
         if np.all(np.abs(new_centroids-centroids) < tolerance) or n_iteration > max_iterations:
-            # 新聚类中心和旧聚类中心相比变化很小，或者达到最大跌打次数，则停止迭代，聚类完成
             break
 
-        # 如果算法没有收敛，则更新聚类中心，进行下一次迭代
+        # 若算法未收敛，则更新聚类中心
         centroids = new_centroids
 
     # 求出粒球的划分即可，不需要每一个划分的中心点
@@ -157,4 +158,8 @@ def main() -> None:
 
 
 if __name__ == '__main__':
+    # TODO data is a global variable
+    # data, np.ndarray, ndim=2, shape=(n_sample, m_features)
+    # data = np.loadtxt('sample.txt')
+    data = pd.read_csv('./datasets_from_gbsc/D7.csv').to_numpy()
     main()
