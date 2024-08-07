@@ -125,7 +125,7 @@ def three_way_kmeans(data: np.ndarray, k: int = 3, max_iterations: int = 100, to
 
 
 def get_data_labels(data: np.ndarray, clusters: list[np.ndarray]) -> tuple[np.ndarray, np.ndarray]:
-    """
+    """TODO 获取核心域的数据和对应的簇标签
     1. 对于K-Means，返回一个data的复制品和每一个样本的簇标签
     2. 对于3WK-Means，返回属于核心域样本集合cores_data和核心域样本的簇标签cores_labels
     """
@@ -136,17 +136,19 @@ def get_data_labels(data: np.ndarray, clusters: list[np.ndarray]) -> tuple[np.nd
     n_samples = len(np.unique(np.concatenate(clusters)))
     labels = np.full(n_samples, -1)
 
-    # 给核心域的样本赋值一个簇标签, 边缘域的样本的簇标签保持为-1
+    # 修改labels: 核心域的样本分配相应的簇标签, 边缘域的样本簇标签保持为-1
     for i in range(k):
         for sample_idx in cores[i]:
             labels[sample_idx] = i
 
+    # indices是核心域的样本点在原始数据集中的索引
+    indices = np.where(labels != -1)[0]
     # 获取核心域样本的簇标签
-    cores_labels = labels[np.where(labels != -1)[0]]
-    # 获取属于核心域的样本点
-    cores_data = data[np.where(labels != -1)[0]]
+    cores_labels = labels[indices]
+    # 获取核心域的样本点
+    cores_data = data[indices]
 
-    return cores_data, np.array(cores_labels)
+    return cores_data, cores_labels
 
 
 def get_cores_fringes(clusters: list[np.ndarray]) -> tuple[list[np.array], list[np.array], list[np.array]]:
