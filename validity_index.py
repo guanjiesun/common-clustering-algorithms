@@ -192,7 +192,7 @@ def main() -> None:
     _, clusters_3w = twkms(data, k=3, epsilon=2.64)
     cores_data, cores_labels = get_data_labels(data, clusters_3w)
 
-    # 使用自己写的函数计算K-Means的validity indices
+    # 使用自定义函数计算K-Means的validity indices
     dbi_kms = calculate_dbi(data, clusters)
     asi_kms = calculate_silhouette_score(data, clusters)
     chi_kms = calculate_chi(data, clusters)
@@ -204,7 +204,7 @@ def main() -> None:
     chi_kms_std = chi(data, labels)
     dunn_kms_std = dunn(pairwise_distances(data), labels)
 
-    # 使用自己写的函数计算3WK-Means的validity indices
+    # 使用自定义函数计算3WK-Means的validity indices
     dbi_3w = calculate_dbi(data, clusters_3w)
     asi_3w = calculate_silhouette_score(data, clusters_3w)
     chi_3w = calculate_chi(data, clusters_3w)
