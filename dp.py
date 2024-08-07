@@ -161,9 +161,9 @@ def draw_cluster(data, labels, centroids, dic_colors):
         # 画聚类中心
         plt.scatter(data[centroids[i], 0], data[centroids[i], 1], color='black', marker="x", s=100)
 
-    foo = np.where(labels == -1)[0]
-    other_data = data[foo]
-    plt.scatter(other_data[:, 0], other_data[:, 1], s=15, color='black')
+    # foo = np.where(labels == -1)[0]
+    # other_data = data[foo]
+    # plt.scatter(other_data[:, 0], other_data[:, 1], s=15, color='black')
     plt.show()
 
 
