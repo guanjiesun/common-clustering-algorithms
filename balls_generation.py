@@ -20,7 +20,6 @@ class GranularBall:
         self.data = dataset[indices]
         self.size = len(self.data)
         self.centroid = np.mean(self.data, axis=0)
-        # pairwise_distances的两个参数的ndim必须相同
         self.radius = np.max(pairwise_distances(self.data, self.centroid.reshape(1, -1)))
 
 
@@ -75,10 +74,10 @@ def kmeans(dataset: np.ndarray, gb: GranularBall, k: int = 2, max_iterations: in
 def generate_gbs(dataset: np.ndarray) -> list[GranularBall]:
     """基于数据集dataset，生成粒球空间gbs"""
 
-    # 初始化粒球空间
+    # 初始化gbs
     gbs = list()
 
-    # n表示原始数据集dataset的数据点数量
+    # n表示原始数据集dataset的样本数量
     n = len(dataset)
 
     # TODO 判断粒球是否需要进一步划分为两个小粒球的阈值(设置方式参考夏书银GB-DPC论文)
@@ -87,13 +86,15 @@ def generate_gbs(dataset: np.ndarray) -> list[GranularBall]:
     # 初始化队列(deque函数需要的参数是一个可迭代对象)
     queue = deque([GranularBall(dataset, np.arange(n))])
 
-    # 开始生成粒球空间
+    # 开始生成gbs
     while queue:
-        gb = queue.popleft()  # 使用popleft而不是pop是因为要保持queue先进先出的特性
+        # 使用popleft而不是pop是因为要保持queue先进先出的特性
+        gb = queue.popleft()
         if gb.size > threshold:
             # 如果gb太大，则使用2-means算法将gb划分为两个更小的粒球，然后两个小粒球入队
             queue.extend(kmeans(dataset, gb, k=2))
         else:
+            # 如果gb大小合适，则将此gb加入gbs
             gbs.append(gb)
 
     return gbs
