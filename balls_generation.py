@@ -10,49 +10,39 @@ from kmeans import visualize_original_data
 
 
 class GranularBall:
-    def __init__(self, indices: np.ndarray):
+    def __init__(self, dataset: np.ndarray, indices: np.ndarray):
         """
-        粒球只有一个属性indices，用于存储属于粒球的数据点在原始数据集data中的索引
-        indices: np.ndarray, ndim=1, shape=(len(indices))
+        TODO 粒球的属性indices存储属于粒球的数据点在原始数据集data中的索引
+        TODO indices是一个粒球最根本最重要的属性
+        TODO indices: np.ndarray, shape=(len(indices))
         """
         self.indices = indices
-
-    def get_gb_data(self):
-        """根据indices，从原始数据集中复制属于粒球的数据点"""
-        return data[self.indices]
-
-    def get_centroid(self) -> np.ndarray:
-        """粒球圆心(定义方式参考夏书银GB-DPC论文)"""
-        return np.mean(self.get_gb_data(), axis=0)
-
-    def get_radius(self) -> np.float64:
-        """粒球半径(定义方式参考夏书银GB-DPC论文)"""
-        return np.max(np.sqrt(np.sum(np.square(self.get_gb_data() - self.get_centroid()), axis=1)))
+        self.data = dataset[indices]
+        self.size = len(self.data)
+        self.centroid = np.mean(self.data, axis=0)
+        # pairwise_distances的两个参数的ndim必须相同
+        self.radius = np.max(pairwise_distances(self.data, self.centroid.reshape(1, -1)))
 
 
-def kmeans(indices: np.ndarray, k: int = 2, max_iterations: int = 100,
+def kmeans(dataset: np.ndarray, gb: GranularBall, k: int = 2, max_iterations: int = 100,
            tolerance: float = 1e-4) -> tuple[GranularBall, GranularBall]:
-    """
-    用于将一个粒球划分为两个粒球的K-Means聚类算法
-    indices表示被划分的粒球的数据点在原始数据集中的索引
-    """
+    """将一个粒球gb划分为两个粒球gb_child1和gb_child2的K-Means聚类算法"""
 
-    # 从data中复制属于gb的数据
-    gb_data = data[indices]
-    gb_size = len(gb_data)
+    # 获取gb的属性
+    indices, data, size = gb.indices, gb.data, gb.size
 
     # 初始化k个聚类中心
-    np.random.seed(gb_size)
+    np.random.seed(size)
     # centroids: np.ndarray, shape = (k, m_features)
-    centroids = gb_data[np.random.choice(gb_size, k, replace=False)]
+    centroids = data[np.random.choice(size, k, replace=False)]
 
     # 开始迭代
     n_iteration = 0
     while True:
         n_iteration += 1
 
-        # distances: np.ndarray, shape=(k, gb_size), 表示每一个聚类中心到其他所有点的距离
-        distances = pairwise_distances(centroids, gb_data)
+        # distances: np.ndarray, shape=(k, size), 表示每一个聚类中心到其他所有点的距离
+        distances = pairwise_distances(centroids, data)
 
         # labels保存每一个样本的簇标签
         labels = np.argmin(distances, axis=0)
@@ -61,43 +51,48 @@ def kmeans(indices: np.ndarray, k: int = 2, max_iterations: int = 100,
         clusters = list()
         for i in range(k):
             # indices的作用：确保cluster保存的数据点的索引是在原始数据集中的索引
-            # TODO 一定要保证cluster保存的数据点的索引是在原始数据集中的索引
+            # TODO 一定要保证cluster保存的数据点的索引是在原始数据集中dataset中的索引
             cluster = indices[np.where(labels == i)[0]]
             clusters.append(cluster)
 
         # 计算新的聚类中心new_centroids: np.ndarray, shape=(k, m_features)
-        new_centroids = np.array([gb_data[labels == i].mean(axis=0) for i in range(k)])
+        new_centroids = np.array([np.mean(data[labels == i], axis=0) for i in range(k)])
 
         # TODO 阈值tolerance用于判断算法是否收敛
         if np.all(np.abs(new_centroids-centroids) < tolerance) or n_iteration > max_iterations:
             break
 
-        # 若算法未收敛，则更新聚类中心
+        # 若算法未收敛，则更新聚类中心，继续迭代
         centroids = new_centroids
 
     # 求出粒球的划分
-    gb_child1 = GranularBall(clusters[0])
-    gb_child2 = GranularBall(clusters[1])
+    gb_child1 = GranularBall(dataset, clusters[0])
+    gb_child2 = GranularBall(dataset, clusters[1])
 
     return gb_child1, gb_child2
 
 
-def generate_gbs() -> list[GranularBall]:
-    """基于一个数据集data，生成一个粒球空间Granular Ball Space, gbs"""
+def generate_gbs(dataset: np.ndarray) -> list[GranularBall]:
+    """基于数据集dataset，生成粒球空间gbs"""
+
+    # 初始化粒球空间
     gbs = list()
-    # n表示原始数据集data的数据点数量(设置方式参考夏书银GB-DPC论文)
-    n = len(data)
-    # TODO 判断粒球是否需要进一步划分为两个小粒球的阈值
+
+    # n表示原始数据集dataset的数据点数量
+    n = len(dataset)
+
+    # TODO 判断粒球是否需要进一步划分为两个小粒球的阈值(设置方式参考夏书银GB-DPC论文)
     threshold = np.sqrt(n)
+
     # 初始化队列(deque函数需要的参数是一个可迭代对象)
-    queue = deque([GranularBall(np.arange(n))])
+    queue = deque([GranularBall(dataset, np.arange(n))])
 
     # 开始生成粒球空间
     while queue:
         gb = queue.popleft()  # 使用popleft而不是pop是因为要保持queue先进先出的特性
         if len(gb.indices) > threshold:
             # 如果gb太大，则使用2means算法将gb划分为两个更小的粒球，然后两个小粒球入队
-            queue.extend(kmeans(gb.indices))
+            queue.extend(kmeans(dataset, gb, k=2))
         else:
             gbs.append(gb)
 
@@ -114,46 +109,50 @@ def verify_gbs(gbs: list[GranularBall]) -> None:
         for j in range(i+1, size):
             set_j = set(gbs[j].indices)
             if set_i.intersection(set_j) != set():
-                raise ValueError("Wrong Granular Ball Space")
+                raise TypeError("Wrong Granular Ball Space")
 
 
 def visualize_gbs(gbs: list[GranularBall], ax: plt.Axes) -> None:
     """可视化粒球空间"""
-    for i, gb in enumerate(gbs):
-        # 获取粒球的数据、质心和半径
-        gb_data, centroid, radius = data[gb.indices], gb.get_centroid(), gb.get_radius()
 
-        # float_x, float_y和float_radius是为了符合Circle函数对参数数据类型的要求
-        float_x, float_y, float_radius = float(centroid[0]), float(centroid[1]), float(radius)
+    for i, gb in enumerate(gbs):
+        # float映射是为了符合Circle函数对参数数据类型的要求
+        # gb.centroid[0], gb.centroid[1]说明此函数只能可视化样本特征数量为2的数据集生成的gbs
+        float_x, float_y, float_radius = map(float, [gb.centroid[0], gb.centroid[1], gb.radius])
 
         # 创建圆, 绘制数据点, 绘制圆, 绘制圆心
         circle = Circle((float_x, float_y), float_radius, fill=False, color='blue')
         ax.add_artist(circle)
-        ax.scatter(centroid[0], centroid[1], color='red', s=5)
-        ax.scatter(gb_data[:, 0], gb_data[:, 1], color='black', marker='.', s=5)
+        ax.scatter(gb.centroid[0], gb.centroid[1], color='red', s=5)
+        ax.scatter(gb.data[:, 0], gb.data[:, 1], color='black', marker='.', s=5)
         ax.set_title("Granular Ball Space")
         ax.set_aspect('equal', adjustable='box')
-
-    plt.tight_layout()
-    plt.show()
 
 
 def main() -> None:
     """
-    1. 生成粒球空间
+    1. 基于一个给定的数据集，生成粒球空间
     2. 验证粒球空间的正确性
     3. 可视化粒球空间
     """
-    gbs = generate_gbs()
+
+    # data, np.ndarray, ndim=2, shape=(n_sample, m_features)
+    # dataset = np.loadtxt('sample.txt')
+    dataset = pd.read_csv('./datasets_from_gbsc/D7.csv').to_numpy()
+
+    # Generate Granular Ball Space
+    gbs = generate_gbs(dataset)
+
+    # Validate Granular Ball Space
     verify_gbs(gbs)
-    fig, (ax0, ax1) = plt.subplots(1, 2, figsize=(12, 6))
-    visualize_original_data(data, ax0)
+
+    # Visualize Granular Ball Space
+    fig, (ax0, ax1) = plt.subplots(1, 2, figsize=(12, 5))
+    visualize_original_data(dataset, ax0)
     visualize_gbs(gbs, ax1)
+    plt.tight_layout()
+    plt.show()
 
 
 if __name__ == '__main__':
-    # TODO data is a global variable
-    # data, np.ndarray, ndim=2, shape=(n_sample, m_features)
-    # data = np.loadtxt('sample.txt')
-    data = pd.read_csv('./datasets_from_gbsc/D5.csv').to_numpy()
     main()
