@@ -5,22 +5,22 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 
-def get_file_paths(folder: str = 'datasets_from_gbsc') -> list[Path]:
-    """get corresponding path of each file from folder"""
+def get_file_paths() -> list[Path]:
+    """get corresponding path of each file"""
     # get the absolute path of current file using Path
     current_file_path = Path(__file__).resolve()
-    folder_path = current_file_path.parent / folder
+    folder_path = current_file_path.parent
     return list(folder_path.glob("*.csv"))
 
 
-def visualize_datasets(folder: str = 'datasets_from_gbsc') -> None:
+def visualize_datasets() -> None:
     """visualize 12 csv datasets from the datasets_from_gbsc folder"""
     # axs is np.ndarray, ndim=2, shape=(3, 4)
     fig, axs = plt.subplots(3, 4, figsize=(10, 8))
     axs: np.ndarray[plt.Axes] = axs.flatten()
 
     # get the absolute path of each file in the folder
-    file_paths = get_file_paths(folder)
+    file_paths = get_file_paths()
 
     # visualize each csv file from the perspective of datapoint
     for i, file_path in enumerate(file_paths):
@@ -36,8 +36,8 @@ def visualize_datasets(folder: str = 'datasets_from_gbsc') -> None:
 
 
 def main() -> None:
-    """visualize 12 datasets from the datasets_from_gbsc folder"""
-    visualize_datasets(folder='datasets_from_gbsc')
+    """visualize 12 csv datasets"""
+    visualize_datasets()
 
 
 if __name__ == '__main__':
