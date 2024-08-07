@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from sklearn.metrics import pairwise_distances
 
 
 def kmeans(data: np.ndarray, k: int = 3, max_iterations: int = 100,
@@ -32,21 +33,25 @@ def kmeans(data: np.ndarray, k: int = 3, max_iterations: int = 100,
     while True:
         n_iteration += 1
         # distances, shape=(k, n_samples); 表示k个聚类中心到n_samples个数据点的距离
-        distances = np.sqrt(np.sum(np.square(data-centroids[:, np.newaxis, :]), axis=2))
+        distances = pairwise_distances(centroids, data)
 
         # 函数返回clusters而不是labels
         labels = np.argmin(distances, axis=0)
         clusters = list()
         for i in range(k):
-            # 每一个cluster存储属于簇i的所有样本(实际上是样本在原始数据集中的索引)
-            clusters.append(np.where(labels == i)[0])
+            # 每一个cluster存储属于簇i的样本在原始数据集中的索引
+            cluster = np.where(labels == i)[0]
+            clusters.append(cluster)
 
         # 计算新的聚类中心
-        new_centroids = np.array([data[labels == i].mean(axis=0) for i in range(k)])
+        new_centroids = np.array([np.mean(data[labels == i], axis=0) for i in range(k)])
 
         # 检查算法是否收敛(新聚类中心和旧聚类中心相比变化很小或者达到最大迭代次数, 则停止迭代)
         if np.all(np.abs(new_centroids - centroids) < tolerance) or n_iteration > max_iterations:
-            break  # 新聚类中心和旧聚类中心相比变化很小，则停止迭代，聚类完成
+            # 新聚类中心和旧聚类中心相比变化很小，则停止迭代，聚类完成
+            break
+
+        # 若算法为收敛，则更新聚类中心，进行下一次迭代
         centroids = new_centroids
 
     # centroids, shape=(k, m_features), 表示k个聚类中心
@@ -85,13 +90,16 @@ def three_way_kmeans(data: np.ndarray, k: int = 3, max_iterations: int = 100, to
     n_iteration = 0
     while True:
         n_iteration += 1
+
         # distances, shape=(k, n_samples); 表示k个聚类中心到n_samples个数据点的距离
-        distances = np.sqrt(np.sum(np.square(data-centroids[:, np.newaxis, :]), axis=2))
+        distances = pairwise_distances(centroids, data)
+
         # judge: shape=(k, n_samples)
         judge = distances - np.min(distances, axis=0)
         # bool_judge: shape=(k, n_samples)
         bool_judge = judge < epsilon
-        # 计算每一个簇包含的数据点
+
+        # 存储每一个簇包含的数据点在原始数据集中的索引
         clusters = list()
         for i in range(k):
             # 每一个cluster存储属于簇i的所有样本(实际上是样本在原始数据集中的索引)
@@ -118,10 +126,8 @@ def three_way_kmeans(data: np.ndarray, k: int = 3, max_iterations: int = 100, to
 
 def get_data_labels(data: np.ndarray, clusters: list[np.ndarray]) -> tuple[np.ndarray, np.ndarray]:
     """
-    1. 对于K-Means
-        返回一个data的复制品和每一个样本的簇标签
-    2. 对于3WK-Means
-        按照顺序从data中复制属于核心域的样本点赋值给cores_data，并且返回核心域数据点的簇标签
+    1. 对于K-Means，返回一个data的复制品和每一个样本的簇标签
+    2. 对于3WK-Means，按照顺序从data中复制属于核心域的样本点赋值给cores_data，并且返回核心域数据点的簇标签
         TODO 顺序复制通过cores_data = data[np.unique(np.concatenate(cores))]中的np.unique实现
     """
     k = len(clusters)
@@ -168,6 +174,7 @@ def get_cores_fringes(clusters: list[np.ndarray]) -> tuple[list[np.array], list[
             if i != j:
                 # 簇i核心域的样本点只能在i中，不能在任何其它簇中出现
                 cores[i] = cores[i].intersection(clusters[i].difference(clusters[j]))
+
         # cores[i]和fringes[i]的并集就是clusters[i]，clusters[i]亦称为簇i的支集
         fringes[i] = clusters[i].difference(cores[i])
 
