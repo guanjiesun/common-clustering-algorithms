@@ -90,8 +90,8 @@ def generate_gbs(dataset: np.ndarray) -> list[GranularBall]:
     # 开始生成粒球空间
     while queue:
         gb = queue.popleft()  # 使用popleft而不是pop是因为要保持queue先进先出的特性
-        if len(gb.indices) > threshold:
-            # 如果gb太大，则使用2means算法将gb划分为两个更小的粒球，然后两个小粒球入队
+        if gb.size > threshold:
+            # 如果gb太大，则使用2-means算法将gb划分为两个更小的粒球，然后两个小粒球入队
             queue.extend(kmeans(dataset, gb, k=2))
         else:
             gbs.append(gb)
