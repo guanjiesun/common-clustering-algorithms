@@ -172,7 +172,7 @@ def visualize_dp_clustering(data, labels, centroids):
 
 def main():
     # 加载数据集
-    dataset = pd.read_csv('./datasets_from_gbsc/D3.csv').to_numpy()
+    dataset = pd.read_csv('./datasets_from_gbsc/D7.csv').to_numpy()
     # distances = load_distance_matrix()
     # dataset = np.loadtxt('sample.txt')
     distances = pairwise_distances(dataset)
