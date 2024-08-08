@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 import seaborn as sns
@@ -171,29 +173,33 @@ def visualize_dp_clustering(data, labels, centroids):
 
 
 def main():
-    # 加载数据集
-    dataset = pd.read_csv('./datasets_from_gbsc/D7.csv').to_numpy()
-    # distances = load_distance_matrix()
-    # dataset = np.loadtxt('sample.txt')
-    distances = pairwise_distances(dataset)
+    # folder_path = Path('./datasets_from_gbsc')
+    # dataset_paths = list(folder_path.glob("*.csv"))
+    dataset_paths = [Path('sample.txt')]
 
-    # 计算截断距离
-    dc = calculate_dc(distances)
+    for file_path in dataset_paths:
+        # 加载数据集
+        dataset = np.loadtxt(file_path)
+        # distances = load_distance_matrix()
+        distances = pairwise_distances(dataset)
 
-    # 计算局部密度
-    rho = calculate_local_density(distances, dc)
+        # 计算截断距离
+        dc = calculate_dc(distances)
 
-    # 计算每个样本的相对距离和最近邻
-    delta, nearest_neighbor = calculate_delta(distances, rho)
+        # 计算局部密度
+        rho = calculate_local_density(distances, dc)
 
-    # 从决策图中选择密度峰值(聚类中心)
-    centroids = generate_decision_graph(rho, delta)
+        # 计算每个样本的相对距离和最近邻
+        delta, nearest_neighbor = calculate_delta(distances, rho)
 
-    # 分配非聚类中心到相应的簇并且返回样本簇标签
-    labels = assign_points_to_clusters(rho, centroids, nearest_neighbor)
+        # 从决策图中选择密度峰值(聚类中心)
+        centroids = generate_decision_graph(rho, delta)
 
-    # 可视化聚类结果
-    visualize_dp_clustering(dataset, labels, centroids)
+        # 分配非聚类中心到相应的簇并且返回样本簇标签
+        labels = assign_points_to_clusters(rho, centroids, nearest_neighbor)
+
+        # 可视化聚类结果
+        visualize_dp_clustering(dataset, labels, centroids)
 
 
 if __name__ == "__main__":
