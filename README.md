@@ -11,3 +11,9 @@
 - IDE: Pycharm Community 2024.1.4
 - Porgramming Language: Python 3.11.9
 - Python Packages: Refer to requirements.txt
+
+## Validity Indices for Clustering Algorithms
+- DBI
+- ASI
+- CHI
+- DUNN
