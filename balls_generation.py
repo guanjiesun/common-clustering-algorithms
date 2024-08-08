@@ -1,4 +1,5 @@
 from collections import deque
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -137,22 +138,27 @@ def main() -> None:
     3. 可视化粒球空间
     """
 
-    # data, np.ndarray, ndim=2, shape=(n_sample, m_features)
-    # dataset = np.loadtxt('sample.txt')
-    dataset = pd.read_csv('./datasets_from_gbsc/D7.csv').to_numpy()
+    folder_path = Path('./datasets_from_gbsc')
+    dataset_paths = list(folder_path.glob("*.csv"))
 
-    # Generate Granular Ball Space
-    gbs = generate_gbs(dataset)
+    for dataset_path in dataset_paths:
+        # 可视化12个数据集分别生成的粒球空间
+        # data, np.ndarray, ndim=2, shape=(n_sample, m_features)
+        dataset = pd.read_csv(dataset_path).to_numpy()
 
-    # Validate Granular Ball Space
-    verify_gbs(gbs)
+        # Generate Granular Ball Space
+        gbs = generate_gbs(dataset)
 
-    # Visualize Granular Ball Space
-    fig, (ax0, ax1) = plt.subplots(1, 2, figsize=(12, 5))
-    visualize_original_data(dataset, ax0)
-    visualize_gbs(gbs, ax1)
-    plt.tight_layout()
-    plt.show()
+        # Validate Granular Ball Space
+        verify_gbs(gbs)
+
+        # Visualize Granular Ball Space
+        fig, (ax0, ax1) = plt.subplots(1, 2, figsize=(12, 5))
+        visualize_original_data(dataset, ax0)
+        visualize_gbs(gbs, ax1)
+        plt.savefig('./OutputFiles/'+dataset_path.name+'.png', format='png')
+        plt.tight_layout()
+        plt.show()
 
 
 if __name__ == '__main__':
