@@ -291,6 +291,7 @@ def main() -> None:
 
     # 图片布局设置
     fig.tight_layout()
+    plt.savefig('./OutputFiles/3W-Kmeans.png', format='png')
     plt.show()
 
 
