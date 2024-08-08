@@ -1,7 +1,7 @@
 from pathlib import Path
 
 import numpy as np
-# import pandas as pd
+import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 from sklearn.metrics import pairwise_distances
@@ -83,7 +83,7 @@ def calculate_delta(distances: np.ndarray, rho):
     return delta, nearest_neighbor
 
 
-def generate_decision_graph(rho, delta):
+def generate_decision_graph(rho: np.ndarray, delta: np.ndarray, file_path: Path):
     centroids = list()  # 改名以反映它现在存储索引
     fig, ax = plt.subplots(figsize=(10, 6))
 
@@ -91,13 +91,13 @@ def generate_decision_graph(rho, delta):
     z = gaussian_kde(xy)(xy)
     # sc表示散点图上的所有集合
     ax.scatter(rho, delta, c=z, s=30, cmap='plasma', marker='.')
-    ax.set_xlabel('rho')
-    ax.set_ylabel('delta')
-    ax.set_title('rho-delta Decision Graph')
+    ax.set_xlabel(r"$\rho$")
+    ax.set_ylabel(r'$\delta$')
+    ax.set_title("Decision Graph")
     ax.grid(True, linestyle='--', alpha=0.7)
 
     # 保存初始图形为 PDF
-    plt.savefig('dp_decision_graph.pdf', dpi=300, bbox_inches='tight')
+    plt.savefig('./OutputFiles/'+file_path.name+'_decision_graph.png')
 
     def select_callback(click_event, release_event):
         # select_callback函数会在用户完成矩形选择后被调用，然后处理用户的选择行为
@@ -149,7 +149,7 @@ def assign_points_to_clusters(rho, centroids: list[int], nearest_neighbor):
     return labels
 
 
-def visualize_dp_clustering(data, labels, centroids):
+def visualize_dp_clustering(data, labels, centroids, file_path: Path):
     # k表示聚类中心的数量
     k = len(centroids)
     colors = sns.color_palette("colorblind", k)
@@ -169,18 +169,16 @@ def visualize_dp_clustering(data, labels, centroids):
     if list(idx):
         other_data = data[idx]
         plt.scatter(other_data[:, 0], other_data[:, 1], color='black', marker=".", s=30)
+    plt.savefig('./OutputFiles/'+file_path.name+'_dp.png')
     plt.show()
 
 
 def main():
-    # folder_path = Path('./datasets_from_gbsc')
-    # dataset_paths = list(folder_path.glob("*.csv"))
-    dataset_paths = [Path('sample.txt')]
+    folder_path = Path('./datasets_from_gbsc')
+    dataset_paths = list(folder_path.glob("*.csv"))
 
     for file_path in dataset_paths:
-        # 加载数据集
-        dataset = np.loadtxt(file_path)
-        # distances = load_distance_matrix()
+        dataset = pd.read_csv(file_path).to_numpy()
         distances = pairwise_distances(dataset)
 
         # 计算截断距离
@@ -193,13 +191,13 @@ def main():
         delta, nearest_neighbor = calculate_delta(distances, rho)
 
         # 从决策图中选择密度峰值(聚类中心)
-        centroids = generate_decision_graph(rho, delta)
+        centroids = generate_decision_graph(rho, delta, file_path)
 
         # 分配非聚类中心到相应的簇并且返回样本簇标签
         labels = assign_points_to_clusters(rho, centroids, nearest_neighbor)
 
         # 可视化聚类结果
-        visualize_dp_clustering(dataset, labels, centroids)
+        visualize_dp_clustering(dataset, labels, centroids, file_path)
 
 
 if __name__ == "__main__":
