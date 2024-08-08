@@ -1,9 +1,11 @@
 import numpy as np
-import matplotlib.pyplot as plt
 import pandas as pd
-from matplotlib.widgets import RectangleSelector, Cursor
+import seaborn as sns
+import matplotlib.pyplot as plt
 from sklearn.metrics import pairwise_distances
 from scipy.stats import gaussian_kde
+from matplotlib.widgets import RectangleSelector, Cursor
+from matplotlib.backend_bases import MouseButton
 
 
 def load_distance_matrix(file_path='example_distances.dat'):
@@ -26,29 +28,30 @@ def load_distance_matrix(file_path='example_distances.dat'):
     return distance_matrix
 
 
-def calculate_dc(distances: np.ndarray):
+def calculate_dc(distances: np.ndarray) -> float:
     upper_tri = distances[np.triu_indices(distances.shape[0], k=1)]
     sorted_distances = np.sort(upper_tri)
     n = len(sorted_distances)
+
     percent = 2.0
     position = int(np.round(n*percent / 100))
     dc = sorted_distances[position]
-    return dc
+
+    return float(dc)
 
 
 def gaussian_kernel(d_i_j, dc):
     return np.exp(-np.square(d_i_j/dc))
 
 
-def calculate_local_density(distances, dc):
+def calculate_local_density(distances: np.ndarray, dc: float):
     """calculate local density for each sample"""
     n_samples = len(distances)
     rho = np.zeros(n_samples)
     for i in range(n_samples-1):
         for j in range(i+1, n_samples):
-            foo = gaussian_kernel(distances[i, j], dc)
-            rho[i] += foo
-            rho[j] += foo
+            rho[i] += gaussian_kernel(distances[i, j], dc)
+            rho[j] += gaussian_kernel(distances[i, j], dc)
     return rho
 
 
@@ -64,13 +67,12 @@ def calculate_delta(distances: np.ndarray, rho):
         if i == 0:
             continue
 
-        # 对于其他的点
-        # 找到密度比其大的点的序号
+        # 对于其他的点，找到密度比其大的点的序号
         index_higher_rho = index_rho[:i]
-        # 获取这些点距离当前点的距离,并找最小值
+        # 获取这些点距离当前点的距离，并找最小值
         delta[index] = np.min(distances[index, index_higher_rho])
 
-        # 保存最近邻点的编号
+        # 保存最近邻点的索引
         index_nn = np.argmin(distances[index, index_higher_rho])
         nearest_neighbor[index] = index_higher_rho[index_nn].astype(int)
 
@@ -85,7 +87,7 @@ def visualize_decision_graph(rho, delta):
     xy = np.vstack([rho, delta])
     z = gaussian_kde(xy)(xy)
     sc = ax.scatter(rho, delta, c=z, s=20, cmap='viridis')
-    plt.colorbar(sc, label='Density')
+    plt.colorbar(sc, label='Local Density')
 
     ax.set_xlabel('rho')
     ax.set_ylabel('delta')
@@ -110,33 +112,24 @@ def visualize_decision_graph(rho, delta):
                              fill=False, edgecolor='r', linestyle='--')
         ax.add_patch(rect)
         fig.canvas.draw()
-
         print(f"Selected {len(selected_indices)} points")
 
-    def on_key(event):
-        if event.key == 'c':
-            for patch in ax.patches:
-                patch.remove()
-            density_peak_indices.clear()
-            fig.canvas.draw()
+    rs = RectangleSelector(ax, select_callback, useblit=True, button=[MouseButton.LEFT, MouseButton.RIGHT],
+                           minspanx=0, minspany=0, spancoords='data', interactive=True)
 
-    rs = RectangleSelector(ax, select_callback, useblit=True,
-                           button=[1, 3],  # disable middle button
-                           minspanx=0, minspany=0,
-                           spancoords='data',
-                           interactive=True)
-
-    fig.canvas.mpl_connect('key_press_event', on_key)
     plt.show()
 
     return density_peak_indices
 
 
 def assign_points_to_clusters(rho, centroids: list[int], nearest_neighbor):
-    n_samples = np.shape(rho)[0]
+    n_samples = len(rho)
+
+    # 初始化所有样本呢的簇标签为1
     labels = np.full(n_samples, -1)
 
     for i, centroid in enumerate(centroids):
+        # 给聚类中心分配簇标签
         labels[centroid] = i
 
     index_rho = np.argsort(rho)[::-1]
@@ -149,39 +142,50 @@ def assign_points_to_clusters(rho, centroids: list[int], nearest_neighbor):
     return labels
 
 
-def draw_cluster(data, labels, centroids, dic_colors):
-    plt.cla()
+def visualize_clustering_result(data, labels, centroids):
+    # k表示找到的聚类中心的数量
     k = np.shape(centroids)[0]
+    colors = sns.color_palette("husl", k)
 
     for i in range(k):
         sub_index = np.where(labels == i)[0]
         sub_delta = data[sub_index]
         # 画数据点
-        plt.scatter(sub_delta[:, 0], sub_delta[:, 1], s=15, color=dic_colors[i])
+        plt.scatter(sub_delta[:, 0], sub_delta[:, 1], s=15, color=colors[i], marker='.')
         # 画聚类中心
         plt.scatter(data[centroids[i], 0], data[centroids[i], 1], color='black', marker="x", s=100)
 
-    # foo = np.where(labels == -1)[0]
-    # other_data = data[foo]
-    # plt.scatter(other_data[:, 0], other_data[:, 1], s=15, color='black')
+    # 判断是否存在未被分配簇标签的样本(簇标签还是-1)，将这些样本画成黑色
+    idx = np.where(labels == -1)[0]
+    if list(idx):
+        other_data = data[idx]
+        plt.scatter(other_data[:, 0], other_data[:, 1], color='black', marker=".", s=30)
     plt.show()
 
 
 def main():
-    # data = pd.read_csv('./datasets_from_gbsc/D1.csv').to_numpy()
+    data = pd.read_csv('./datasets_from_gbsc/D2.csv').to_numpy()
     # distances = load_distance_matrix()
-    data = np.loadtxt('example_data.txt')
+    # data = np.loadtxt('sample.txt')
     distances = pairwise_distances(data)
+
+    # 计算截断距离
     dc = calculate_dc(distances)
+
+    # 计算局部密度
     rho = calculate_local_density(distances, dc)
+
+    # 计算相对距离和每个样本的最近邻
     delta, nearest_neighbor = calculate_delta(distances, rho)
-    density_peak_points = visualize_decision_graph(rho, delta)
-    labels = assign_points_to_clusters(rho, density_peak_points, nearest_neighbor)
-    dic_colors = {0: (.8, 0, 0), 1: (0, .8, 0),
-                  2: (0, 0, .8), 3: (.8, .8, 0),
-                  4: (.8, 0, .8), 5: (0, .8, .8),
-                  6: (0, 0, 0)}
-    draw_cluster(data, labels, density_peak_points, dic_colors)
+
+    # 从决策图中选择密度峰值(聚类中心)
+    centroids = visualize_decision_graph(rho, delta)
+
+    # 分配非聚类中心并且返回每个样本的簇标签
+    labels = assign_points_to_clusters(rho, centroids, nearest_neighbor)
+
+    # 可视化聚类结果
+    visualize_clustering_result(data, labels, centroids)
 
 
 if __name__ == "__main__":
