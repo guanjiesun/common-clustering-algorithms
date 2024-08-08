@@ -9,16 +9,17 @@ from matplotlib.backend_bases import MouseButton
 
 
 def load_distance_matrix(file_path='example_distances.dat'):
+    """example_distances.data是论文补充材料中的数据"""
     # 读取文件并提取数据
-    data = np.loadtxt(file_path)
+    distances = np.loadtxt(file_path)
     # 获取点的数量
-    num_points = int(max(data[:, :2].max(), data[:, :2].min()))
+    num_points = int(max(distances[:, :2].max(), distances[:, :2].min()))
 
     # 创建一个空的距离矩阵
     distance_matrix = np.zeros((num_points, num_points))
 
     # 填充距离矩阵
-    for row in data:
+    for row in distances:
         i, j, distance = int(row[0]) - 1, int(row[1]) - 1, row[2]
         distance_matrix[i, j] = distance
         distance_matrix[j, i] = distance
@@ -82,7 +83,7 @@ def calculate_delta(distances: np.ndarray, rho):
 
 def generate_decision_graph(rho, delta):
     centroids = list()  # 改名以反映它现在存储索引
-    fig, ax = plt.subplots(figsize=(10, 8))
+    fig, ax = plt.subplots(figsize=(10, 6))
 
     xy = np.vstack([rho, delta])
     z = gaussian_kde(xy)(xy)
@@ -92,6 +93,9 @@ def generate_decision_graph(rho, delta):
     ax.set_ylabel('delta')
     ax.set_title('rho-delta Decision Graph')
     ax.grid(True, linestyle='--', alpha=0.7)
+
+    # 保存初始图形为 PDF
+    plt.savefig('dp_decision_graph.pdf', dpi=300, bbox_inches='tight')
 
     def select_callback(click_event, release_event):
         # select_callback函数会在用户完成矩形选择后被调用，然后处理用户的选择行为
@@ -156,7 +160,7 @@ def visualize_dp_clustering(data, labels, centroids):
         plt.scatter(cluster_data[:, 0], cluster_data[:, 1], s=15, color=colors[i], marker='.')
 
     # 画聚类中心
-    plt.scatter(centroids_data[:, 0], centroids_data[:, 1], color='black', marker="x", s=100)
+    plt.scatter(centroids_data[:, 0], centroids_data[:, 1], color='red', marker="o", s=100)
 
     # 判断是否存在未被分配簇标签的样本(簇标签还是-1)，将这些样本画成黑色
     idx = np.where(labels == -1)[0]
@@ -179,13 +183,13 @@ def main():
     # 计算局部密度
     rho = calculate_local_density(distances, dc)
 
-    # 计算相对距离和每个样本的最近邻
+    # 计算每个样本的相对距离和最近邻
     delta, nearest_neighbor = calculate_delta(distances, rho)
 
     # 从决策图中选择密度峰值(聚类中心)
     centroids = generate_decision_graph(rho, delta)
 
-    # 分配非聚类中心并且返回每个样本的簇标签
+    # 分配非聚类中心到相应的簇并且返回样本簇标签
     labels = assign_points_to_clusters(rho, centroids, nearest_neighbor)
 
     # 可视化聚类结果
