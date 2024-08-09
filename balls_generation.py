@@ -10,7 +10,7 @@ from sklearn.metrics import pairwise_distances
 from kmeans import visualize_original_data
 from dp import calculate_delta as calculate_gb_delta
 from dp import generate_decision_graph
-from dp import assign_points_to_clusters as assign_gb_to_clusters
+# from dp import assign_points_to_clusters as assign_gb_to_clusters
 
 
 class GranularBall:
@@ -200,7 +200,7 @@ def main() -> None:
     rho = calculate_gb_rho(gbs)
     delta, nearest_neighbor = calculate_gb_delta(distances, rho)
     centroids = generate_decision_graph(rho, delta, dataset_path)
-    labels = assign_gb_to_clusters(rho, centroids, nearest_neighbor)
+    # labels = assign_gb_to_clusters(rho, centroids, nearest_neighbor)
 
     plt.show()
 
