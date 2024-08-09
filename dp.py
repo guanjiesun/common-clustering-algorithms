@@ -174,30 +174,32 @@ def visualize_dp_clustering(data, labels, centroids, file_path: Path):
 
 
 def main():
-    folder_path = Path('./datasets_from_gbsc')
-    dataset_paths = list(folder_path.glob("*.csv"))
+    # folder_path = Path('./datasets_from_gbsc')
+    # dataset_paths = list(folder_path.glob("*.csv"))
+    # dataset_paths = [dataset_paths[0]]
+    #
+    # for file_path in dataset_paths:
+    file_path = Path('./datasets_from_gbsc/D1.csv')
+    dataset = pd.read_csv(file_path).to_numpy()
+    distances = pairwise_distances(dataset)
 
-    for file_path in dataset_paths:
-        dataset = pd.read_csv(file_path).to_numpy()
-        distances = pairwise_distances(dataset)
+    # 计算截断距离
+    dc = calculate_dc(distances)
 
-        # 计算截断距离
-        dc = calculate_dc(distances)
+    # 计算局部密度
+    rho = calculate_local_density(distances, dc)
 
-        # 计算局部密度
-        rho = calculate_local_density(distances, dc)
+    # 计算每个样本的相对距离和最近邻
+    delta, nearest_neighbor = calculate_delta(distances, rho)
 
-        # 计算每个样本的相对距离和最近邻
-        delta, nearest_neighbor = calculate_delta(distances, rho)
+    # 从决策图中选择密度峰值(聚类中心)
+    centroids = generate_decision_graph(rho, delta, file_path)
 
-        # 从决策图中选择密度峰值(聚类中心)
-        centroids = generate_decision_graph(rho, delta, file_path)
+    # 分配非聚类中心到相应的簇并且返回样本簇标签
+    labels = assign_points_to_clusters(rho, centroids, nearest_neighbor)
 
-        # 分配非聚类中心到相应的簇并且返回样本簇标签
-        labels = assign_points_to_clusters(rho, centroids, nearest_neighbor)
-
-        # 可视化聚类结果
-        visualize_dp_clustering(dataset, labels, centroids, file_path)
+    # 可视化聚类结果
+    visualize_dp_clustering(dataset, labels, centroids, file_path)
 
 
 if __name__ == "__main__":
