@@ -43,11 +43,11 @@ def calculate_dc(distances: np.ndarray) -> float:
     return float(dc)
 
 
-def gaussian_kernel(d_i_j, dc):
+def gaussian_kernel(d_i_j, dc) -> float:
     return np.exp(-np.square(d_i_j/dc))
 
 
-def calculate_local_density(distances: np.ndarray, dc: float):
+def calculate_local_density(distances: np.ndarray, dc: float) -> np.ndarray:
     """calculate local density for each sample"""
     n_samples = len(distances)
     rho = np.zeros(n_samples)
@@ -58,7 +58,7 @@ def calculate_local_density(distances: np.ndarray, dc: float):
     return rho
 
 
-def calculate_delta(distances: np.ndarray, rho):
+def calculate_delta(distances: np.ndarray, rho: np.ndarray):
     n_samples = len(distances)
 
     delta = np.zeros(n_samples)
@@ -84,7 +84,7 @@ def calculate_delta(distances: np.ndarray, rho):
 
 
 def generate_decision_graph(rho: np.ndarray, delta: np.ndarray, file_path: Path):
-    centroids = list()  # 改名以反映它现在存储索引
+    centroids = list()
     fig, ax = plt.subplots(figsize=(10, 6))
 
     xy = np.vstack([rho, delta])
