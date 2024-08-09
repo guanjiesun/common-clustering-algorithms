@@ -8,6 +8,9 @@ from matplotlib.patches import Circle
 from sklearn.metrics import pairwise_distances
 
 from kmeans import visualize_original_data
+from dp import calculate_delta as calculate_gb_delta
+from dp import generate_decision_graph
+from dp import assign_points_to_clusters as assign_gb_to_clusters
 
 
 class GranularBall:
@@ -131,34 +134,75 @@ def visualize_gbs(gbs: list[GranularBall], ax: plt.Axes) -> None:
         ax.set_aspect('equal', adjustable='box')
 
 
+def calculate_gb_rho(gbs: list[GranularBall]):
+    """计算每一个粒球的局部密度(local density, rho)"""
+    n_gb = len(gbs)
+    rho = np.zeros(n_gb)
+    for i in range(n_gb):
+        size = gbs[i].size
+        radius = gbs[i].radius
+        centroid = gbs[i].centroid
+        data = gbs[i].data
+        rho[i] = np.square(size/radius) / (np.sum(pairwise_distances(data, centroid.reshape(1, -1))))
+
+    return rho
+
+
+def distances_matrix(gbs: list[GranularBall]) -> np.ndarray:
+    """基于粒球空间，计算每一对粒球之间的欧式距离"""
+    n_gbs = len(gbs)
+    distances = np.zeros((n_gbs, n_gbs))
+    for i in range(n_gbs-1):
+        for j in range(i+1, n_gbs):
+            # distance表示gbs[]和gbs[j]这两个粒球之间的距离
+            distance = pairwise_distances(gbs[i].centroid.reshape(1, -1), gbs[j].centroid.reshape(1, -1)).flatten()[0]
+            distances[i, j] = distance
+            distances[j, i] = distance
+
+    return distances
+
+
 def main() -> None:
     """
     1. 基于一个给定的数据集，生成粒球空间
     2. 验证粒球空间的正确性
     3. 可视化粒球空间
     """
+    # folder_path = Path('./datasets_from_gbsc')
+    # dataset_paths = list(folder_path.glob("*.csv"))
+    #
+    # for dataset_path in dataset_paths:
+    #     # 可视化12个数据集分别生成的粒球空间
 
-    folder_path = Path('./datasets_from_gbsc')
-    dataset_paths = list(folder_path.glob("*.csv"))
+    # dataset, np.ndarray, shape=(n_sample, m_features)
+    dataset_path = Path('./datasets_from_gbsc/D1.csv')
+    dataset = pd.read_csv(dataset_path).to_numpy()
 
-    for dataset_path in dataset_paths:
-        # 可视化12个数据集分别生成的粒球空间
-        # data, np.ndarray, ndim=2, shape=(n_sample, m_features)
-        dataset = pd.read_csv(dataset_path).to_numpy()
+    # Generate Granular Ball Space
+    gbs = generate_gbs(dataset)
 
-        # Generate Granular Ball Space
-        gbs = generate_gbs(dataset)
+    # Validate Granular Ball Space
+    verify_gbs(gbs)
 
-        # Validate Granular Ball Space
-        verify_gbs(gbs)
+    # Visualize Granular Ball Space
+    fig, (ax0, ax1) = plt.subplots(1, 2, figsize=(12, 5))
+    visualize_original_data(dataset, ax0)
+    visualize_gbs(gbs, ax1)
 
-        # Visualize Granular Ball Space
-        fig, (ax0, ax1) = plt.subplots(1, 2, figsize=(12, 5))
-        visualize_original_data(dataset, ax0)
-        visualize_gbs(gbs, ax1)
-        plt.savefig('./OutputFiles/'+dataset_path.name+'.png', format='png')
-        plt.tight_layout()
-        plt.show()
+    # Save Figure
+    # plt.savefig('./OutputFiles/'+dataset_path.name+'.png', format='png')
+
+    # Set Figure Style
+    plt.tight_layout()
+    # plt.show()
+
+    distances = distances_matrix(gbs)
+    rho = calculate_gb_rho(gbs)
+    delta, nearest_neighbor = calculate_gb_delta(distances, rho)
+    centroids = generate_decision_graph(rho, delta, dataset_path)
+    labels = assign_gb_to_clusters(rho, centroids, nearest_neighbor)
+
+    plt.show()
 
 
 if __name__ == '__main__':
