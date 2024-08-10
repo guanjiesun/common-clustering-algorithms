@@ -10,7 +10,7 @@ from sklearn.metrics import pairwise_distances
 from kmeans import visualize_original_data
 from dp import calculate_delta as calculate_gb_delta
 from dp import generate_decision_graph
-# from dp import assign_points_to_clusters as assign_gb_to_clusters
+from dp import assign_points_to_clusters as assign_gb_to_clusters
 
 
 class GranularBall:
@@ -117,8 +117,9 @@ def verify_gbs(gbs: list[GranularBall]) -> None:
                 raise TypeError("Wrong Granular Ball Space")
 
 
-def visualize_gbs(gbs: list[GranularBall], ax: plt.Axes) -> None:
+def visualize_gbs(gbs: list[GranularBall]) -> None:
     """可视化粒球空间"""
+    fig, ax = plt.subplots()
 
     for i, gb in enumerate(gbs):
         # float映射是为了符合Circle函数对参数数据类型的要求
@@ -132,6 +133,8 @@ def visualize_gbs(gbs: list[GranularBall], ax: plt.Axes) -> None:
         ax.scatter(gb.data[:, 0], gb.data[:, 1], color='black', marker='.', s=5)
         ax.set_title("Granular Ball Space")
         ax.set_aspect('equal', adjustable='box')
+
+    plt.show()
 
 
 def calculate_gb_rho(gbs: list[GranularBall]):
@@ -162,6 +165,22 @@ def distances_matrix(gbs: list[GranularBall]) -> np.ndarray:
     return distances
 
 
+def assign_sample_to_clusters(dataset: np.ndarray, labels: np.ndarray, gbs) -> np.ndarray:
+    """获取每一个样本的簇标签"""
+    n_samples = len(dataset)
+    sample_labels = np.full(n_samples, -1)
+    for i, gb in enumerate(gbs):
+        for sample_idx in gb.indices:
+            # 样本的簇标签和它所属的粒球的簇标签保持一致
+            sample_labels[sample_idx] = labels[i]
+
+    return sample_labels
+
+
+def visualize_gbdp_clustering_result(dataset: np.ndarray, labels: np.ndarray, gbs: list[GranularBall]) -> None:
+    pass
+
+
 def main() -> None:
     """
     1. 基于一个给定的数据集，生成粒球空间
@@ -170,39 +189,34 @@ def main() -> None:
     """
     # folder_path = Path('./datasets_from_gbsc')
     # dataset_paths = list(folder_path.glob("*.csv"))
-    #
-    # for dataset_path in dataset_paths:
-    #     # 可视化12个数据集分别生成的粒球空间
 
     # dataset, np.ndarray, shape=(n_sample, m_features)
-    dataset_path = Path('./datasets_from_gbsc/D1.csv')
-    dataset = pd.read_csv(dataset_path).to_numpy()
-
+    dataset_path = Path('./sample.txt')
+    # dataset = pd.read_csv(dataset_path).to_numpy()
+    dataset = np.loadtxt(dataset_path)
     # Generate Granular Ball Space
     gbs = generate_gbs(dataset)
-
     # Validate Granular Ball Space
     verify_gbs(gbs)
 
     # Visualize Granular Ball Space
-    fig, (ax0, ax1) = plt.subplots(1, 2, figsize=(12, 5))
-    visualize_original_data(dataset, ax0)
-    visualize_gbs(gbs, ax1)
+    visualize_original_data(dataset)
+    visualize_gbs(gbs)
 
-    # Save Figure
-    # plt.savefig('./OutputFiles/'+dataset_path.name+'.png', format='png')
-
-    # Set Figure Style
-    plt.tight_layout()
-    # plt.show()
-
+    # 基于gbs，计算粒球距离矩阵
     distances = distances_matrix(gbs)
+    # 计算每一个粒球的局部密度
     rho = calculate_gb_rho(gbs)
+    # 计算每一个粒球的delta距离和最近邻
     delta, nearest_neighbor = calculate_gb_delta(distances, rho)
+    # 生成决策图并选取聚类中心
     centroids = generate_decision_graph(rho, delta, dataset_path)
-    # labels = assign_gb_to_clusters(rho, centroids, nearest_neighbor)
-
-    plt.show()
+    # 获取每一个粒球的簇标签
+    labels = assign_gb_to_clusters(rho, centroids, nearest_neighbor)
+    # 获取每一个样本的簇标签
+    sample_labels = assign_sample_to_clusters(dataset, labels, gbs)
+    print(sample_labels.shape)
+    print(len(dataset))
 
 
 if __name__ == '__main__':
