@@ -137,6 +137,23 @@ def visualize_gbs(gbs: list[GranularBall]) -> None:
     plt.show()
 
 
+def visualize_gbs_centroids(gbs: list[GranularBall], gb_centroids: list[int], gb_labels: np.ndarray) -> None:
+    """可视化粒球空间，只绘制粒球的质心，和作为聚类中心的粒球的质心"""
+    fig, ax = plt.subplots()
+    n_gb = len(gbs)
+    gb_centers = [gbs[i].centroid for i in range(n_gb)]
+    gb_centers = np.array(gb_centers)
+
+    ax.scatter(gb_centers[:, 0], gb_centers[:, 1], c=gb_labels, cmap='viridis', marker=',', s=5)
+
+    for centroid_idx in gb_centroids:
+        # 绘制作为聚类中心的粒球的质心
+        centroid = gbs[centroid_idx].centroid
+        ax.scatter(centroid[0], centroid[1], color='red', marker='*', s=20)
+
+    plt.show()
+
+
 def calculate_gb_rho(gbs: list[GranularBall]):
     """计算每一个粒球的局部密度(local density, rho)"""
     n_gb = len(gbs)
@@ -178,8 +195,12 @@ def assign_sample_to_clusters(dataset: np.ndarray, labels: np.ndarray, gbs) -> n
     return sample_labels
 
 
-def visualize_gbdp_clustering_result(dataset: np.ndarray, labels: np.ndarray, gbs: list[GranularBall]) -> None:
-    pass
+def visualize_gbdp_clustering(dataset: np.ndarray, sample_labels: np.ndarray) -> None:
+    fig, ax = plt.subplots()
+    # 绘制样本点
+    ax.scatter(dataset[:, 0], dataset[:, 1], c=sample_labels, marker='.', s=5)
+    ax.set_title("GBDP Clustering Result")
+    plt.show()
 
 
 def main() -> None:
@@ -211,13 +232,13 @@ def main() -> None:
     # 计算每一个粒球的delta距离和最近邻
     delta, nearest_neighbor = calculate_gb_delta(distances, rho)
     # 生成决策图并选取聚类中心
-    centroids = generate_decision_graph(rho, delta, dataset_path)
+    gb_centroids = generate_decision_graph(rho, delta)
     # 获取每一个粒球的簇标签
-    labels = assign_gb_to_clusters(rho, centroids, nearest_neighbor)
+    gb_labels = assign_gb_to_clusters(rho, gb_centroids, nearest_neighbor)
+    visualize_gbs_centroids(gbs, gb_centroids, gb_labels)
     # 获取每一个样本的簇标签
-    sample_labels = assign_sample_to_clusters(dataset, labels, gbs)
-    print(sample_labels.shape)
-    print(len(dataset))
+    sample_labels = assign_sample_to_clusters(dataset, gb_labels, gbs)
+    visualize_gbdp_clustering(dataset, sample_labels)
 
 
 if __name__ == '__main__':
