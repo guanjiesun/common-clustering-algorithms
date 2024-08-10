@@ -83,7 +83,7 @@ def calculate_delta(distances: np.ndarray, rho: np.ndarray):
     return delta, nearest_neighbor
 
 
-def generate_decision_graph(rho: np.ndarray, delta: np.ndarray, file_path: Path):
+def generate_decision_graph(rho: np.ndarray, delta: np.ndarray):
     centroids = list()
     fig, ax = plt.subplots(figsize=(10, 6))
 
@@ -133,23 +133,24 @@ def assign_points_to_clusters(rho: np.ndarray, centroids: list[int], nearest_nei
     n_samples = len(rho)
 
     # 初始化所有样本呢的簇标签为1
-    labels = np.full(n_samples, -1)
+    gb_labels = np.full(n_samples, -1)
 
     for i, centroid in enumerate(centroids):
         # 给聚类中心分配簇标签
-        labels[centroid] = i
+        gb_labels[centroid] = i
 
     index_rho = np.argsort(rho)[::-1]
     for i, index in enumerate(index_rho):
         # 从密度大的点进行标号
-        if labels[index] == -1:
+        if gb_labels[index] == -1:
             # 如果没有被标记过，那么簇标签与距离其最近且密度比其大的点的簇标签相同
-            labels[index] = labels[int(nearest_neighbor[index])]
+            gb_labels[index] = gb_labels[int(nearest_neighbor[index])]
 
-    return labels
+    return gb_labels
 
 
-def visualize_dp_clustering(data, labels, centroids, file_path: Path):
+def visualize_dp_clustering(data, labels, centroids):
+    """可视化dpc算法的聚类结果"""
     # k表示聚类中心的数量
     k = len(centroids)
     colors = sns.color_palette("colorblind", k)
@@ -163,24 +164,24 @@ def visualize_dp_clustering(data, labels, centroids, file_path: Path):
 
     # 画聚类中心
     plt.scatter(centroids_data[:, 0], centroids_data[:, 1], color='red', marker="o", s=100)
+    plt.title("DP Clustering Result")
 
     # 判断是否存在未被分配簇标签的样本(簇标签还是-1)，将这些样本画成黑色
     idx = np.where(labels == -1)[0]
     if list(idx):
         other_data = data[idx]
         plt.scatter(other_data[:, 0], other_data[:, 1], color='black', marker=".", s=30)
-    plt.savefig('./OutputFiles/'+file_path.name+'_dp.png')
+    # plt.savefig('./OutputFiles/'+file_path.name+'_dp.png')
     plt.show()
 
 
 def main():
     # folder_path = Path('./datasets_from_gbsc')
     # dataset_paths = list(folder_path.glob("*.csv"))
-    # dataset_paths = [dataset_paths[0]]
-    #
     # for file_path in dataset_paths:
-    file_path = Path('./datasets_from_gbsc/D1.csv')
-    dataset = pd.read_csv(file_path).to_numpy()
+    file_path = Path('./sample.txt')
+    # dataset = pd.read_csv(file_path).to_numpy()
+    dataset = np.loadtxt(file_path)
     distances = pairwise_distances(dataset)
 
     # 计算截断距离
@@ -193,13 +194,13 @@ def main():
     delta, nearest_neighbor = calculate_delta(distances, rho)
 
     # 从决策图中选择密度峰值(聚类中心)
-    centroids = generate_decision_graph(rho, delta, file_path)
+    centroids = generate_decision_graph(rho, delta)
 
     # 分配非聚类中心到相应的簇并且返回样本簇标签
     labels = assign_points_to_clusters(rho, centroids, nearest_neighbor)
 
     # 可视化聚类结果
-    visualize_dp_clustering(dataset, labels, centroids, file_path)
+    visualize_dp_clustering(dataset, labels, centroids)
 
 
 if __name__ == "__main__":
