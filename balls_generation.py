@@ -2,7 +2,7 @@ from collections import deque
 from pathlib import Path
 
 import numpy as np
-# import pandas as pd
+import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.patches import Circle
 from sklearn.metrics import pairwise_distances
@@ -29,15 +29,16 @@ class GranularBall:
 
 def kmeans(dataset: np.ndarray, gb: GranularBall, k: int = 2, max_iterations: int = 100,
            tolerance: float = 1e-4) -> tuple[GranularBall, GranularBall]:
-    """将一个粒球gb划分为两个粒球gb_child1和gb_child2的K-Means聚类算法"""
+    """将一个粒球gb划分为两个粒球gb_child1和gb_child2的K-Means++聚类算法"""
 
     # 获取gb的属性
     indices, data, size = gb.indices, gb.data, gb.size
 
     # 初始化k个聚类中心
     np.random.seed(size)
+    centroid_idx = np.random.choice(size, k, replace=False)
     # centroids: np.ndarray, shape = (k, m_features)
-    centroids = data[np.random.choice(size, k, replace=False)]
+    centroids = data[centroid_idx]
 
     # 开始迭代
     n_iteration = 0
@@ -144,12 +145,15 @@ def visualize_gbs_centroids(gbs: list[GranularBall], gb_centroids: list[int], gb
     gb_centers = [gbs[i].centroid for i in range(n_gb)]
     gb_centers = np.array(gb_centers)
 
+    # 绘制非聚类中心粒球的的质心
     ax.scatter(gb_centers[:, 0], gb_centers[:, 1], c=gb_labels, cmap='viridis', marker=',', s=5)
 
     for centroid_idx in gb_centroids:
         # 绘制作为聚类中心的粒球的质心
         centroid = gbs[centroid_idx].centroid
         ax.scatter(centroid[0], centroid[1], color='red', marker='*', s=20)
+
+    ax.set_title("Granular Balls Without Circles")
 
     plt.show()
 
@@ -158,12 +162,20 @@ def calculate_gb_rho(gbs: list[GranularBall]):
     """计算每一个粒球的局部密度(local density, rho)"""
     n_gb = len(gbs)
     rho = np.zeros(n_gb)
-    for i in range(n_gb):
-        size = gbs[i].size
-        radius = gbs[i].radius
-        centroid = gbs[i].centroid
-        data = gbs[i].data
-        rho[i] = np.square(size/radius) / (np.sum(pairwise_distances(data, centroid.reshape(1, -1))))
+    for i, gb in enumerate(gbs):
+        size = gb.size
+        radius = gb.radius
+        centroid = gb.centroid
+        data = gb.data
+        if size == 1:
+            # 如果粒球gb只包含一个样本点，那么它的半径为0，它的局部密度设置为1
+            rho[i] = 1
+            continue
+        foo = np.sum(pairwise_distances(data, centroid.reshape(1, -1)))
+        bar = np.square(size/radius)
+        if radius == 0 or foo == 0:
+            raise ZeroDivisionError("Check Your Code!")
+        rho[i] = bar / foo
 
     return rho
 
@@ -213,9 +225,9 @@ def main() -> None:
     # dataset_paths = list(folder_path.glob("*.csv"))
 
     # dataset, np.ndarray, shape=(n_sample, m_features)
-    dataset_path = Path('./sample.txt')
-    # dataset = pd.read_csv(dataset_path).to_numpy()
-    dataset = np.loadtxt(dataset_path)
+    dataset_path = Path('./datasets_from_gbsc/D2.csv')
+    dataset = pd.read_csv(dataset_path).to_numpy()
+    # dataset = np.loadtxt(dataset_path)
     # Generate Granular Ball Space
     gbs = generate_gbs(dataset)
     # Validate Granular Ball Space
