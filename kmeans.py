@@ -188,16 +188,17 @@ def get_cores_fringes(clusters: list[np.ndarray]) -> tuple[list[np.array], list[
     return clusters, cores, fringes
 
 
-def visualize_original_data(data: np.ndarray, ax: plt.Axes) -> None:
+def visualize_original_data(data: np.ndarray) -> None:
     """
     可视化原始数据
     :param data: np.ndarray, shape=(n_samples, m_features), ndim=2
-    :param ax: an instance of plt.Axes
     :return: None
     """
+    fig, ax = plt.subplots()
     ax.scatter(data[:, 0], data[:, 1], s=5, marker='.', color='black')
     ax.set_title('Original Data')
     ax.set_aspect('equal', adjustable='box')
+    plt.show()
 
 
 def visualize_kmeans_results(data: np.ndarray, centroids: np.ndarray,
@@ -285,7 +286,7 @@ def main() -> None:
 
     # 数据可视化
     fig, (ax0, ax1, ax2) = plt.subplots(1, 3, figsize=(12, 4))
-    visualize_original_data(data, ax0)
+    visualize_original_data(data)
     visualize_kmeans_results(data, centroids1, clusters1, ax1)
     visualize_twkmeans_results(data, centroids2, clusters2, ax2)
 

@@ -129,7 +129,7 @@ def generate_decision_graph(rho: np.ndarray, delta: np.ndarray, file_path: Path)
     return centroids
 
 
-def assign_points_to_clusters(rho, centroids: list[int], nearest_neighbor):
+def assign_points_to_clusters(rho: np.ndarray, centroids: list[int], nearest_neighbor: np.ndarray):
     n_samples = len(rho)
 
     # 初始化所有样本呢的簇标签为1
