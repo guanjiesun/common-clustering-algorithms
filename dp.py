@@ -97,7 +97,7 @@ def generate_decision_graph(rho: np.ndarray, delta: np.ndarray, file_path: Path)
     ax.grid(True, linestyle='--', alpha=0.7)
 
     # 保存初始图形为 PDF
-    plt.savefig('./OutputFiles/'+file_path.name+'_decision_graph.png')
+    # plt.savefig('./OutputFiles/'+file_path.name+'_decision_graph.png')
 
     def select_callback(click_event, release_event):
         # select_callback函数会在用户完成矩形选择后被调用，然后处理用户的选择行为
