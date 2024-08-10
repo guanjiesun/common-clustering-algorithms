@@ -151,6 +151,7 @@ def visualize_gbs_centroids(gbs: list[GranularBall], gb_centroids: list[int], gb
     for centroid_idx in gb_centroids:
         # 绘制作为聚类中心的粒球的质心
         centroid = gbs[centroid_idx].centroid
+        # 只能绘制平面上的图
         ax.scatter(centroid[0], centroid[1], color='red', marker='*', s=20)
 
     ax.set_title("Granular Balls Without Circles")
@@ -225,31 +226,42 @@ def main() -> None:
     # dataset_paths = list(folder_path.glob("*.csv"))
 
     # dataset, np.ndarray, shape=(n_sample, m_features)
-    dataset_path = Path('./datasets_from_gbsc/D2.csv')
+    dataset_path = Path('./datasets_from_gbsc/D3.csv')
     dataset = pd.read_csv(dataset_path).to_numpy()
     # dataset = np.loadtxt(dataset_path)
-    # Generate Granular Ball Space
+
+    # 生成粒球空间
     gbs = generate_gbs(dataset)
-    # Validate Granular Ball Space
+
+    # 验证粒球空间的有效性
     verify_gbs(gbs)
 
-    # Visualize Granular Ball Space
+    # 可视化粒球空间
     visualize_original_data(dataset)
     visualize_gbs(gbs)
 
-    # 基于gbs，计算粒球距离矩阵
+    # 基于粒球空间，计算粒球距离矩阵
     distances = distances_matrix(gbs)
+
     # 计算每一个粒球的局部密度
     rho = calculate_gb_rho(gbs)
+
     # 计算每一个粒球的delta距离和最近邻
     delta, nearest_neighbor = calculate_gb_delta(distances, rho)
+
     # 生成决策图并选取聚类中心
     gb_centroids = generate_decision_graph(rho, delta)
+
     # 获取每一个粒球的簇标签
     gb_labels = assign_gb_to_clusters(rho, gb_centroids, nearest_neighbor)
+
+    # 可视化粒球空间，每一个粒球不显示圆心，不同簇标签的粒球显示不同的颜色
     visualize_gbs_centroids(gbs, gb_centroids, gb_labels)
+
     # 获取每一个样本的簇标签
     sample_labels = assign_sample_to_clusters(dataset, gb_labels, gbs)
+
+    # 可视化GBDPC聚类结果
     visualize_gbdp_clustering(dataset, sample_labels)
 
 
