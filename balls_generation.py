@@ -2,7 +2,7 @@ from collections import deque
 from pathlib import Path
 
 import numpy as np
-import pandas as pd
+# import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.patches import Circle
 from sklearn.metrics import pairwise_distances
@@ -158,7 +158,8 @@ def distances_matrix(gbs: list[GranularBall]) -> np.ndarray:
     for i in range(n_gbs-1):
         for j in range(i+1, n_gbs):
             # distance表示gbs[]和gbs[j]这两个粒球之间的距离
-            distance = pairwise_distances(gbs[i].centroid.reshape(1, -1), gbs[j].centroid.reshape(1, -1)).flatten()[0]
+            distance = pairwise_distances(gbs[i].centroid.reshape(1, -1), gbs[j].centroid.reshape(1, -1))
+            distance = distance.flatten()[0]
             distances[i, j] = distance
             distances[j, i] = distance
 
