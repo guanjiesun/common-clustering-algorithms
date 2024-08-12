@@ -226,8 +226,8 @@ def main() -> None:
     # dataset_paths = list(folder_path.glob("*.csv"))
 
     # dataset, np.ndarray, shape=(n_sample, m_features)
-    dataset_path = Path('./datasets_from_gbsc/D3.csv')
-    dataset = pd.read_csv(dataset_path).to_numpy()
+    dataset_path = Path('./datasets_from_gbsc/D1.csv')
+    dataset = pd.read_csv(dataset_path, header=None).to_numpy()
     # dataset = np.loadtxt(dataset_path)
 
     # 生成粒球空间
@@ -261,7 +261,7 @@ def main() -> None:
     # 获取每一个样本的簇标签
     sample_labels = assign_sample_to_clusters(dataset, gb_labels, gbs)
 
-    # 可视化GBDPC聚类结果
+    # 可视化GB-DPC聚类结果
     visualize_gbdp_clustering(dataset, sample_labels)
 
 

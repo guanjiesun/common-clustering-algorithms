@@ -1,7 +1,7 @@
 from pathlib import Path
 
 import numpy as np
-import pandas as pd
+# import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 from sklearn.metrics import pairwise_distances
@@ -180,7 +180,7 @@ def main():
     # dataset_paths = list(folder_path.glob("*.csv"))
     # for file_path in dataset_paths:
     file_path = Path('./sample.txt')
-    # dataset = pd.read_csv(file_path).to_numpy()
+    # dataset = pd.read_csv(file_path, header=None).to_numpy()
     dataset = np.loadtxt(file_path)
     distances = pairwise_distances(dataset)
 
