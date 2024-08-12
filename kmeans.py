@@ -202,15 +202,15 @@ def visualize_original_data(data: np.ndarray) -> None:
 
 
 def visualize_kmeans_results(data: np.ndarray, centroids: np.ndarray,
-                             clusters: list[np.ndarray], ax: plt.Axes) -> None:
+                             clusters: list[np.ndarray]) -> None:
     """
     可视化K-Means聚类结果
     :param data: np.ndarray, shape=(n_samples, m_features), ndim=2
     :param centroids: np.ndarray, shape=(k, m_features), ndim=1
     :param clusters: np.ndarray, shape=(n_samples), the cluster label for each sample
-    :param ax: an instance of plt.Axes
     :return: None
     """
+    fig, ax = plt.subplots()
     # 簇的个数k和数据集中的样本数量n_samples
     k = len(clusters)
     n_samples = len(data)
@@ -229,18 +229,19 @@ def visualize_kmeans_results(data: np.ndarray, centroids: np.ndarray,
     # 设置图片属性和样式
     ax.set_title('K-Means Clustering')
     ax.set_aspect('equal', adjustable='box')
+    plt.show()
 
 
 def visualize_twkmeans_results(data: np.ndarray, centers: np.ndarray,
-                               clusters: list[np.ndarray], ax: plt.Axes) -> None:
+                               clusters: list[np.ndarray]) -> None:
     """
     可视化3WK-Means聚类结果
     :param data: np.ndarray, shape=(n_samples, m_features), ndim=2
     :param centers: np.ndarray, shape=(k, m_features), ndim=1
     :param clusters: list[np.ndarray], len(clusters)=k
-    :param ax:
     :return:
     """
+    fig, ax = plt.subplots()
     # 簇的个数k和数据集中的样本数量n_samples
     k = len(clusters)
     n_samples = len(data)
@@ -266,6 +267,7 @@ def visualize_twkmeans_results(data: np.ndarray, centers: np.ndarray,
     # 设置图片属性和样式
     ax.set_title('3WK-Means Clustering')
     ax.set_aspect('equal', adjustable='box')
+    plt.show()
 
 
 def main() -> None:
@@ -285,15 +287,9 @@ def main() -> None:
     centroids2, clusters2 = three_way_kmeans(data, k=3, epsilon=2.64)
 
     # 数据可视化
-    fig, (ax0, ax1, ax2) = plt.subplots(1, 3, figsize=(12, 4))
     visualize_original_data(data)
-    visualize_kmeans_results(data, centroids1, clusters1, ax1)
-    visualize_twkmeans_results(data, centroids2, clusters2, ax2)
-
-    # 图片布局设置
-    fig.tight_layout()
-    plt.savefig('./OutputFiles/3W-Kmeans.png', format='png')
-    plt.show()
+    visualize_kmeans_results(data, centroids1, clusters1)
+    visualize_twkmeans_results(data, centroids2, clusters2)
 
 
 if __name__ == '__main__':
