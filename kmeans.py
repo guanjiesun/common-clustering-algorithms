@@ -55,8 +55,7 @@ def kmeans(data: np.ndarray, k: int = 3, max_iterations: int = 100,
         # 若算法未收敛, 则更新聚类中心, 进行下一次迭代
         centroids = new_centroids
 
-    # centroids, numpy, shape=(k, m_features), 表示k个聚类中心
-    # clusters: list[np.ndarray], len(clusters)=k
+    # centroids, shape=(k, m_features), 表示k个聚类中心; clusters: list[np.ndarray], len(clusters)=k
     return centroids, clusters
 
 
@@ -118,15 +117,16 @@ def three_way_kmeans(data: np.ndarray, k: int = 3, max_iterations: int = 100, to
         # 若算法未收敛, 则更新聚类中心, 进行下一次迭代
         centroids = new_centroids
 
-    # centroids, shape=(k, m_features), 表示k个聚类中心
-    # clusters: list[np.ndarray], len(clusters)=k
+    # centroids, shape=(k, m_features), 表示k个聚类中心; clusters: list[np.ndarray], len(clusters)=k
     return centroids, clusters
 
 
 def get_coredata_corelabels(data: np.ndarray, clusters: list[np.ndarray]) -> tuple[np.ndarray, np.ndarray]:
-    """TODO 基于clusters和data，获取每一个簇的核心域样本点的簇标签和每一个簇的样本点集合
+    """
+    TODO 基于clusters和data，获取每一个簇的核心域样本点的簇标签和每一个簇的样本点集合
     1. 对于K-Means，返回一个data的复制品和每一个样本的簇标签(K-Means产生的簇就是核心域)
     2. 对于3WK-Means，返回属于核心域样本集合cores_data和核心域样本的簇标签cores_labels
+    3. 此函数是为了计算聚类算法的validity index而设计的
     """
     k = len(clusters)
     cores, _ = get_cores_fringes(clusters)
@@ -144,9 +144,11 @@ def get_coredata_corelabels(data: np.ndarray, clusters: list[np.ndarray]) -> tup
 
     # indices是核心域的样本点在原始数据集中的索引
     indices = np.where(labels != -1)[0]
+
     # 获取核心域样本的簇标签
     cores_labels = labels[indices]
-    # 获取核心域的样本点
+
+    # 获取核心域的样本点集合
     cores_data = data[indices]
 
     return cores_data, cores_labels
@@ -181,7 +183,6 @@ def get_cores_fringes(clusters: list[np.ndarray]) -> tuple[list[np.array], list[
         fringes[i] = clusters[i].difference(cores[i])
 
     # 列表中的元素由集合转换为np.ndarray
-    # clusters = [np.array(list(cluster)) for cluster in clusters]
     cores = [np.array(list(core)) for core in cores]
     fringes = [np.array(list(fringe)) for fringe in fringes]
 
@@ -261,7 +262,7 @@ def visualize_twkmeans_results(data: np.ndarray, centers: np.ndarray,
     # 绘制聚类中心
     ax.scatter(centers[:, 0], centers[:, 1], c='red', s=50, marker='x')
 
-    # 为了凸显边缘域的数据点，覆盖为黑色
+    # 为了凸显边缘域的样本点，覆盖为黑色
     fringes_data = data[np.unique(np.concatenate(fringes))]
     ax.scatter(fringes_data[:, 0], fringes_data[:, 1], c='black', s=5, marker='.')
 
