@@ -9,7 +9,7 @@ from sklearn.metrics import calinski_harabasz_score as chi
 from kmeans import kmeans as kms
 from kmeans import three_way_kmeans as twkms
 from kmeans import get_cores_fringes
-from kmeans import get_data_labels
+from kmeans import get_coredata_corelabels
 
 
 def calculate_dbi(data: np.ndarray, clusters: list[np.ndarray]) -> float:
@@ -21,7 +21,7 @@ def calculate_dbi(data: np.ndarray, clusters: list[np.ndarray]) -> float:
     k = len(clusters)
     # TODO 让每一个簇的核心域参与计算，不要包括边缘域
     # 如果clusters是K-Means产生的，那么cores和clusters相同
-    _, cores, _ = get_cores_fringes(clusters)
+    cores, _ = get_cores_fringes(clusters)
 
     # 计算每一个簇的中心; centroids, list[np.ndarray]; np.ndarray.shape=(k, m)
     centroids = list()
@@ -70,7 +70,7 @@ def calculate_silhouette_score(data: np.ndarray, clusters: list[np.ndarray]) -> 
     k = len(clusters)
     # TODO 让每一个簇的核心域参与计算，不要包括边缘域
     # 如果clusters是K-Means产生的，那么cores和clusters相同(因为边界域是空集)
-    _, cores, _ = get_cores_fringes(clusters)
+    cores, _ = get_cores_fringes(clusters)
 
     # 计算每一个点到簇内其他点距离的平均值
     distances1 = list()
@@ -114,7 +114,7 @@ def calculate_chi(data: np.ndarray, clusters: list[np.ndarray]) -> float:
 
     # TODO 让每一个簇的核心域参与计算，不要包括边缘域
     # 如果clusters是K-Means产生的，那么cores和clusters相同(因为边界域是空集)
-    _, cores, _ = get_cores_fringes(clusters)
+    cores, _ = get_cores_fringes(clusters)
     # cores_1d是cores的一维形式
     cores_1d = np.unique(np.concatenate(cores))
 
@@ -161,7 +161,7 @@ def calculate_dunn(data: np.ndarray, clusters: list[np.ndarray]) -> float:
 
     # TODO 让每一个簇的核心域参与计算，不要包括边缘域
     # 如果clusters是K-Means产生的，那么cores和clusters相同(因为边界域是空集)
-    _, cores, _ = get_cores_fringes(clusters)
+    cores, _ = get_cores_fringes(clusters)
 
     # 计算每一对簇之间的簇间距离(用簇i和簇j最近样本间的距离表示)
     intra_dists = list()
@@ -181,16 +181,16 @@ def calculate_dunn(data: np.ndarray, clusters: list[np.ndarray]) -> float:
 
 def main() -> None:
     """计算K-Means和3WK-Means算法的DBI"""
-    # 导入数据
+    # 加载数据
     data = np.loadtxt('sample.txt')
 
     # 对于K-Means, get_labels_data返回的数据集就是data的副本
     _, clusters = kms(data, k=3)
-    _, labels = get_data_labels(data, clusters)
+    _, labels = get_coredata_corelabels(data, clusters)
 
     # 获取核心域的数据集和每一个样本的簇标签
     _, clusters_3w = twkms(data, k=3, epsilon=2.64)
-    cores_data, cores_labels = get_data_labels(data, clusters_3w)
+    cores_data, cores_labels = get_coredata_corelabels(data, clusters_3w)
 
     # 使用自定义函数计算K-Means的validity indices
     dbi_kms = calculate_dbi(data, clusters)

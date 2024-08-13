@@ -20,41 +20,42 @@ def kmeans(data: np.ndarray, k: int = 3, max_iterations: int = 100,
     # 判断data, k, max_iterations是否合法
     if not isinstance(data, np.ndarray) or data.ndim != 2:
         raise TypeError("Data must be a 2D numpy array!")
-    if k <= 0 or k > n_samples:
+    if k <= 0 or k > n_samples or max_iterations < 1:
         raise ValueError("Invalid number of clusters!")
-    if max_iterations < 1:
-        raise ValueError("Invalid max_iterations!")
 
     # 初始化k个聚类中心和样本的簇标签
     np.random.seed(100)
     centroids = data[np.random.choice(n_samples, k, replace=False)]
 
+    # 开始迭代
     n_iteration = 0
     while True:
         n_iteration += 1
         # distances, shape=(k, n_samples); 表示k个聚类中心到n_samples个数据点的距离
         distances = pairwise_distances(centroids, data)
 
-        # 函数返回clusters而不是labels
+        # 基于距离矩阵，计算每一个样本的簇标签
         labels = np.argmin(distances, axis=0)
+
+        # 基于簇标签，保存每一个簇中的每一个样本在数据集data中的索引
         clusters = list()
         for i in range(k):
-            # 每一个cluster存储属于簇i的样本在原始数据集中的索引
+            # 每一个cluster存储簇i的样本在数据集data中的索引
             cluster = np.where(labels == i)[0]
             clusters.append(cluster)
 
         # 计算新的聚类中心
-        new_centroids = np.array([np.mean(data[labels == i], axis=0) for i in range(k)])
+        new_centroids = np.array([np.mean(data[clusters[i]], axis=0) for i in range(k)])
 
-        # 检查算法是否收敛(新聚类中心和旧聚类中心相比变化很小或者达到最大迭代次数, 则停止迭代)
+        # 检查算法是否收敛
         if np.all(np.abs(new_centroids - centroids) < tolerance) or n_iteration > max_iterations:
-            # 新聚类中心和旧聚类中心相比变化很小，则停止迭代，聚类完成
+            # 新聚类中心和旧聚类中心相比变化很小或者达到最大迭代次数, 则停止迭代
             break
 
-        # 若算法为收敛，则更新聚类中心，进行下一次迭代
+        # 若算法未收敛, 则更新聚类中心, 进行下一次迭代
         centroids = new_centroids
 
-    # centroids, shape=(k, m_features), 表示k个聚类中心
+    # centroids, numpy, shape=(k, m_features), 表示k个聚类中心
     # clusters: list[np.ndarray], len(clusters)=k
     return centroids, clusters
 
@@ -62,8 +63,8 @@ def kmeans(data: np.ndarray, k: int = 3, max_iterations: int = 100,
 def three_way_kmeans(data: np.ndarray, k: int = 3, max_iterations: int = 100, tolerance: float = 1e-4,
                      epsilon: float = 2.64) -> tuple[np.ndarray, list[np.ndarray]]:
     """
-    三支K-Means，每一个簇有核心域和边缘域两个集合表示
-    原则：每一个数据点只能属于一个簇的核心域，但是可以属于一个或者多个簇的边缘域
+    三支K-Means，每一个簇由核心域和边缘域两个集合表示
+    原则：核心域的数据点只能属于一个簇的核心域，但是边缘域的数据点可以属于一个或者多个簇的边缘域
     论文：于洪《三支聚类综述》；王平心《三支K-Means》
     :param data: np.ndarray, shape=(n_samples, m_features), ndim=2
     :param k: int, to specify the number of cluster
@@ -97,23 +98,21 @@ def three_way_kmeans(data: np.ndarray, k: int = 3, max_iterations: int = 100, to
         # judge: shape=(k, n_samples)
         judge = distances - np.min(distances, axis=0)
         # bool_judge: shape=(k, n_samples)
-        bool_judge = judge < epsilon
+        bool_judge = (judge < epsilon)
 
         # 存储每一个簇包含的数据点在原始数据集中的索引
         clusters = list()
         for i in range(k):
-            # 每一个cluster存储属于簇i的所有样本(实际上是样本在原始数据集中的索引)
+            # cluster存储属于簇i的样本在原始数据集中的索引
             cluster = np.where(bool_judge[i, :] == 1)[0]
             clusters.append(cluster)
 
         # 计算新的聚类中心
-        new_centroids = list()
-        for i in range(k):
-            new_centroids.append(np.mean(data[clusters[i]], axis=0))
-        new_centroids = np.array(new_centroids)
+        new_centroids = np.array([np.mean(data[clusters[i]], axis=0) for i in range(k)])
 
-        # 检查算法是否收敛(新聚类中心和旧聚类中心相比变化很小或者达到最大迭代次数, 则停止迭代)
+        # 检查算法是否收敛
         if np.all(np.abs(new_centroids - centroids) < tolerance) or n_iteration > max_iterations:
+            # 新聚类中心和旧聚类中心相比变化很小或者达到最大迭代次数, 则停止迭代
             break
 
         # 若算法未收敛, 则更新聚类中心, 进行下一次迭代
@@ -124,16 +123,18 @@ def three_way_kmeans(data: np.ndarray, k: int = 3, max_iterations: int = 100, to
     return centroids, clusters
 
 
-def get_data_labels(data: np.ndarray, clusters: list[np.ndarray]) -> tuple[np.ndarray, np.ndarray]:
-    """TODO 获取核心域的数据和对应的簇标签
-    1. 对于K-Means，返回一个data的复制品和每一个样本的簇标签
+def get_coredata_corelabels(data: np.ndarray, clusters: list[np.ndarray]) -> tuple[np.ndarray, np.ndarray]:
+    """TODO 基于clusters和data，获取每一个簇的核心域样本点的簇标签和每一个簇的样本点集合
+    1. 对于K-Means，返回一个data的复制品和每一个样本的簇标签(K-Means产生的簇就是核心域)
     2. 对于3WK-Means，返回属于核心域样本集合cores_data和核心域样本的簇标签cores_labels
     """
     k = len(clusters)
-    _, cores, _ = get_cores_fringes(clusters)
+    cores, _ = get_cores_fringes(clusters)
 
     # 计算样本总数以初始化labels
-    n_samples = len(np.unique(np.concatenate(clusters)))
+    n_samples = len(data)
+
+    # 初始化每一个数据集每一个样本的簇标签
     labels = np.full(n_samples, -1)
 
     # 修改labels: 核心域的样本分配相应的簇标签, 边缘域的样本簇标签保持为-1
@@ -151,7 +152,7 @@ def get_data_labels(data: np.ndarray, clusters: list[np.ndarray]) -> tuple[np.nd
     return cores_data, cores_labels
 
 
-def get_cores_fringes(clusters: list[np.ndarray]) -> tuple[list[np.array], list[np.array], list[np.array]]:
+def get_cores_fringes(clusters: list[np.ndarray]) -> tuple[list[np.array], list[np.array]]:
     """
     基于3WK-Means返回的clusters，求出每一个簇的支集，核心域集和边缘域集
     :param clusters: list[np.ndarray]，每一个列表元素包含一个簇的支集
@@ -180,12 +181,12 @@ def get_cores_fringes(clusters: list[np.ndarray]) -> tuple[list[np.array], list[
         fringes[i] = clusters[i].difference(cores[i])
 
     # 列表中的元素由集合转换为np.ndarray
-    clusters = [np.array(list(cluster)) for cluster in clusters]
+    # clusters = [np.array(list(cluster)) for cluster in clusters]
     cores = [np.array(list(core)) for core in cores]
     fringes = [np.array(list(fringe)) for fringe in fringes]
 
-    # clusters是包含k个元素的列表, 每个元素是一维np.ndarray数组; cores和fringes同理
-    return clusters, cores, fringes
+    # cores是包含k个元素的列表, 每个元素是一维np.ndarray, fringes同理
+    return cores, fringes
 
 
 def visualize_original_data(data: np.ndarray) -> None:
@@ -246,8 +247,8 @@ def visualize_twkmeans_results(data: np.ndarray, centers: np.ndarray,
     k = len(clusters)
     n_samples = len(data)
 
-    # clusters是包含k个元素的列表, 每个元素是一维np.ndarray数组; cores和fringes同理
-    clusters, cores, fringes = get_cores_fringes(clusters)
+    # cores是包含k个元素的列表, 每个元素是一维np.ndarray数组, fringes同理
+    cores, fringes = get_cores_fringes(clusters)
 
     # 为每一个样本分配簇标签(边缘域样本的簇标签保持为-1)
     labels = np.full(n_samples, -1)
