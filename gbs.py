@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Circle
 from sklearn.metrics import pairwise_distances
 
-from kmeans import visualize_original_data
+from visualize_original_data import visualize_original_data
 
 
 class GranularBall:

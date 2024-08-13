@@ -2,6 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.metrics import pairwise_distances
 
+from visualize_original_data import visualize_original_data
+
 
 def kmeans(data: np.ndarray, k: int = 3, max_iterations: int = 100,
            tolerance: float = 1e-4) -> tuple[np.ndarray, list[np.ndarray]]:
@@ -188,19 +190,6 @@ def get_cores_fringes(clusters: list[np.ndarray]) -> tuple[list[np.array], list[
 
     # cores是包含k个元素的列表, 每个元素是一维np.ndarray, fringes同理
     return cores, fringes
-
-
-def visualize_original_data(data: np.ndarray) -> None:
-    """
-    可视化原始数据
-    :param data: np.ndarray, shape=(n_samples, m_features), ndim=2
-    :return: None
-    """
-    fig, ax = plt.subplots()
-    ax.scatter(data[:, 0], data[:, 1], s=5, marker='.', color='black')
-    ax.set_title('Original Data')
-    ax.set_aspect('equal', adjustable='box')
-    plt.show()
 
 
 def visualize_kmeans_results(data: np.ndarray, centroids: np.ndarray,

@@ -9,10 +9,10 @@ from gbs import GranularBall
 from gbs import generate_gbs
 from gbs import verify_gbs
 from gbs import visualize_gbs
-from kmeans import visualize_original_data
 from dpc import calculate_delta as calculate_gb_delta
 from dpc import generate_decision_graph
 from dpc import assign_points_to_clusters as assign_gb_to_clusters
+from visualize_original_data import visualize_original_data
 
 
 def visualize_gbs_centroids(gbs: list[GranularBall], gb_centroids: list[int], gb_labels: np.ndarray) -> None:
