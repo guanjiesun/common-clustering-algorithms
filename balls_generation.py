@@ -139,7 +139,7 @@ def visualize_gbs(gbs: list[GranularBall]) -> None:
 
 
 def visualize_gbs_centroids(gbs: list[GranularBall], gb_centroids: list[int], gb_labels: np.ndarray) -> None:
-    """可视化粒球空间，只绘制粒球的质心，和作为聚类中心的粒球的质心"""
+    """可视化粒球空间：只绘制粒球的质心，和作为聚类中心的粒球的质心"""
     fig, ax = plt.subplots()
     n_gb = len(gbs)
     gb_centers = [gbs[i].centroid for i in range(n_gb)]
@@ -196,7 +196,7 @@ def distances_matrix(gbs: list[GranularBall]) -> np.ndarray:
     return distances
 
 
-def assign_sample_to_clusters(dataset: np.ndarray, labels: np.ndarray, gbs) -> np.ndarray:
+def get_sample_labels(dataset: np.ndarray, labels: np.ndarray, gbs) -> np.ndarray:
     """获取每一个样本的簇标签"""
     n_samples = len(dataset)
     sample_labels = np.full(n_samples, -1)
@@ -259,7 +259,7 @@ def main() -> None:
     visualize_gbs_centroids(gbs, gb_centroids, gb_labels)
 
     # 获取每一个样本的簇标签
-    sample_labels = assign_sample_to_clusters(dataset, gb_labels, gbs)
+    sample_labels = get_sample_labels(dataset, gb_labels, gbs)
 
     # 可视化GB-DPC聚类结果
     visualize_gbdp_clustering(dataset, sample_labels)
