@@ -1,6 +1,10 @@
-## Common Clustering Algorithms
-- K-Means
-- 3WK-Means
+## KMeans Based Algorithms
+- KMeans
+- 3W-KMeans
+- GB-KMeans
+- 3W-GB-KMeans
+
+## DPC Based Algorithms
 - DPC
 - 3W-DPC
 - GB-DPC
