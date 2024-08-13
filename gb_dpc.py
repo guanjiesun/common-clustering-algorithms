@@ -95,9 +95,7 @@ def visualize_gbdp_clustering(dataset: np.ndarray, sample_labels: np.ndarray) ->
 
 def main() -> None:
     """
-    1. 基于一个给定的数据集，生成粒球空间
-    2. 验证粒球空间的正确性
-    3. 可视化粒球空间
+    hello, world!
     """
 
     # dataset, np.ndarray, shape=(n_sample, m_features)
@@ -137,3 +135,7 @@ def main() -> None:
 
     # 可视化GB-DPC聚类结果
     visualize_gbdp_clustering(dataset, sample_labels)
+
+
+if __name__ == '__main__':
+    main()
