@@ -15,27 +15,6 @@ from dpc import assign_points_to_clusters as assign_gb_to_clusters
 from visualize_original_data import visualize_original_data
 
 
-def visualize_gbs_centroids(gbs: list[GranularBall], gb_centroids: list[int], gb_labels: np.ndarray) -> None:
-    """可视化粒球空间：只绘制粒球的质心，和作为聚类中心的粒球的质心"""
-    fig, ax = plt.subplots()
-    n_gb = len(gbs)
-    gb_centers = [gbs[i].centroid for i in range(n_gb)]
-    gb_centers = np.array(gb_centers)
-
-    # 绘制非聚类中心粒球的的质心
-    ax.scatter(gb_centers[:, 0], gb_centers[:, 1], c=gb_labels, cmap='viridis', marker=',', s=5)
-
-    for centroid_idx in gb_centroids:
-        # 绘制作为聚类中心的粒球的质心
-        centroid = gbs[centroid_idx].centroid
-        # 只能绘制平面上的图
-        ax.scatter(centroid[0], centroid[1], color='red', marker='*', s=20)
-
-    ax.set_title("Granular Balls Without Circles")
-
-    plt.show()
-
-
 def calculate_gb_rho(gbs: list[GranularBall]):
     """计算每一个粒球的局部密度(local density, rho)"""
     n_gb = len(gbs)
@@ -71,6 +50,27 @@ def distances_matrix(gbs: list[GranularBall]) -> np.ndarray:
             distances[j, i] = distance
 
     return distances
+
+
+def visualize_gbs_centroids(gbs: list[GranularBall], gb_centroids: list[int], gb_labels: np.ndarray) -> None:
+    """可视化粒球空间：只绘制粒球的质心，和作为聚类中心的粒球的质心"""
+    fig, ax = plt.subplots()
+    n_gb = len(gbs)
+    gb_centers = [gbs[i].centroid for i in range(n_gb)]
+    gb_centers = np.array(gb_centers)
+
+    # 绘制非聚类中心粒球的的质心
+    ax.scatter(gb_centers[:, 0], gb_centers[:, 1], c=gb_labels, cmap='viridis', marker=',', s=5)
+
+    for centroid_idx in gb_centroids:
+        # 绘制作为聚类中心的粒球的质心
+        centroid = gbs[centroid_idx].centroid
+        # 只能绘制平面上的图
+        ax.scatter(centroid[0], centroid[1], color='red', marker='*', s=20)
+
+    ax.set_title("Granular Balls Without Circles")
+
+    plt.show()
 
 
 def get_sample_labels(dataset: np.ndarray, labels: np.ndarray, gbs) -> np.ndarray:
