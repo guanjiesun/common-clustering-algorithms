@@ -192,8 +192,8 @@ def get_cores_fringes(clusters: list[np.ndarray]) -> tuple[list[np.array], list[
     return cores, fringes
 
 
-def visualize_kmeans_results(data: np.ndarray, centroids: np.ndarray,
-                             clusters: list[np.ndarray]) -> None:
+def visualize_kmeans_result(data: np.ndarray, centroids: np.ndarray,
+                            clusters: list[np.ndarray]) -> None:
     """
     可视化K-Means聚类结果
     :param data: np.ndarray, shape=(n_samples, m_features), ndim=2
@@ -223,8 +223,8 @@ def visualize_kmeans_results(data: np.ndarray, centroids: np.ndarray,
     plt.show()
 
 
-def visualize_twkmeans_results(data: np.ndarray, centers: np.ndarray,
-                               clusters: list[np.ndarray]) -> None:
+def visualize_twkmeans_result(data: np.ndarray, centers: np.ndarray,
+                              clusters: list[np.ndarray]) -> None:
     """
     可视化3WK-Means聚类结果
     :param data: np.ndarray, shape=(n_samples, m_features), ndim=2
@@ -281,8 +281,8 @@ def main() -> None:
 
     # 数据可视化
     visualize_original_data(dataset)
-    visualize_kmeans_results(dataset, centroids1, clusters1)
-    visualize_twkmeans_results(dataset, centroids2, clusters2)
+    visualize_kmeans_result(dataset, centroids1, clusters1)
+    visualize_twkmeans_result(dataset, centroids2, clusters2)
 
 
 if __name__ == '__main__':
