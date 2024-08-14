@@ -269,19 +269,20 @@ def main() -> None:
     3. 可视化K-Means和3WK-Means的聚类结果
     :return: None
     """
-    # 生成数据
-    data = np.loadtxt('sample.txt')
+
+    # 载入数据
+    dataset = np.loadtxt('sample.txt')
 
     # 获取K-Means聚类结果
-    centroids1, clusters1 = kmeans(data, k=3)
+    centroids1, clusters1 = kmeans(dataset, k=3)
 
     # 获取3WK-Means聚类结果
-    centroids2, clusters2 = three_way_kmeans(data, k=3, epsilon=2.64)
+    centroids2, clusters2 = three_way_kmeans(dataset, k=3, epsilon=2.64)
 
     # 数据可视化
-    visualize_original_data(data)
-    visualize_kmeans_results(data, centroids1, clusters1)
-    visualize_twkmeans_results(data, centroids2, clusters2)
+    visualize_original_data(dataset)
+    visualize_kmeans_results(dataset, centroids1, clusters1)
+    visualize_twkmeans_results(dataset, centroids2, clusters2)
 
 
 if __name__ == '__main__':
