@@ -184,7 +184,7 @@ def main() -> None:
     # 加载数据
     data = np.loadtxt('sample.txt')
 
-    # 对于K-Means, get_labels_data返回的数据集就是data的副本
+    # 对于K-Means, get_coredata_corelabels返回的数据集就是data的副本
     _, clusters = kms(data, k=3)
     _, labels = get_coredata_corelabels(data, clusters)
 
