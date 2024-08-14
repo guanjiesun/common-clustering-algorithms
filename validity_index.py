@@ -7,9 +7,9 @@ from sklearn.metrics import davies_bouldin_score as dbi
 from sklearn.metrics import calinski_harabasz_score as chi
 
 from kmeans import kmeans as kms
-from kmeans import three_way_kmeans as twkms
-from kmeans import get_cores_fringes
-from kmeans import get_coredata_corelabels
+from kmeans_3w import three_way_kmeans as twkms
+from kmeans_3w import get_cores_fringes
+from kmeans_3w import get_coredata_corelabels
 from kmeans_gb import gb_kmeans
 from kmeans_gb import get_sample_labels
 from gbs import generate_gbs
