@@ -39,15 +39,11 @@ def calculate_gb_rho(gbs: list[GranularBall]):
 
 def distances_matrix(gbs: list[GranularBall]) -> np.ndarray:
     """基于粒球空间，计算每一对粒球之间的欧式距离"""
-    n_gbs = len(gbs)
-    distances = np.zeros((n_gbs, n_gbs))
-    for i in range(n_gbs-1):
-        for j in range(i+1, n_gbs):
-            # distance表示gbs[]和gbs[j]这两个粒球之间的距离
-            distance = pairwise_distances(gbs[i].centroid.reshape(1, -1), gbs[j].centroid.reshape(1, -1))
-            distance = distance.flatten()[0]
-            distances[i, j] = distance
-            distances[j, i] = distance
+
+    # gb_centroids表示每一个粒球的质心组成的二维numpy数组
+    gb_centroids = np.array([gb.centroid for gb in gbs])
+    # distances表示每一对粒球之间的欧式距离(就是粒球质心的距离)
+    distances = pairwise_distances(gb_centroids)
 
     return distances
 
