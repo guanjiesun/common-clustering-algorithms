@@ -274,6 +274,7 @@ def main() -> None:
 
     # 获取K-Means聚类结果
     centroids1, clusters1 = kmeans(data, k=3)
+
     # 获取3WK-Means聚类结果
     centroids2, clusters2 = three_way_kmeans(data, k=3, epsilon=2.64)
 
