@@ -175,12 +175,15 @@ def visualize_dp_clustering(data, labels, centroids):
 
 
 def main():
-    # folder_path = Path('./datasets_from_gbsc')
-    # dataset_paths = list(folder_path.glob("*.csv"))
-    # for file_path in dataset_paths:
+    """DPC算法实现"""
+
+    # 设置文件路径
     file_path = Path('./sample.txt')
-    # dataset = pd.read_csv(file_path, header=None).to_numpy()
+
+    # 载入数据
     dataset = np.loadtxt(file_path)
+
+    # 计算距离矩阵
     distances = pairwise_distances(dataset)
 
     # 计算截断距离

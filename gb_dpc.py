@@ -94,12 +94,10 @@ def visualize_gbdp_clustering(dataset: np.ndarray, sample_labels: np.ndarray) ->
 
 
 def main() -> None:
-    """
-    hello, world!
-    """
+    """GB-DPC算法实现"""
 
     # dataset, np.ndarray, shape=(n_sample, m_features)
-    dataset_path = Path('./datasets_from_gbsc/D1.csv')
+    dataset_path = Path('./datasets/D1.csv')
     dataset = pd.read_csv(dataset_path, header=None).to_numpy()
 
     # 生成粒球空间
