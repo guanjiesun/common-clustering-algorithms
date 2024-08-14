@@ -9,13 +9,13 @@ from gbs import visualize_gbs
 from visualize_original_data import visualize_original_data
 
 
-def gb_kmeans(gb_centroids: np.ndarray, k: int = 3, max_iterations: int = 100,
+def gb_kmeans(gbs: list[GranularBall], k: int = 3, max_iterations: int = 100,
               tolerance: float = 1e-4) -> tuple[np.ndarray, np.ndarray]:
     """
     TODO 对粒球空间进行KMeans聚类
     gb_centroids表示每一个粒球的质心组成的二维numpy数组，对这n_gb个质心进行KMeans聚类即可
     """
-
+    gb_centroids = np.array([gb.centroid for gb in gbs])
     # n_gb表示粒球空间中粒球的数量
     n_gb = len(gb_centroids)
 
@@ -98,7 +98,7 @@ def main():
     visualize_gbs(gbs)
 
     # 对粒球空间进行KMeans聚类
-    centers, gb_labels = gb_kmeans(np.array([gb.centroid for gb in gbs]), k=3)
+    centers, gb_labels = gb_kmeans(gbs, k=3)
 
     # 获取每一个样本的簇标签
     sample_labels = get_sample_labels(gbs, gb_labels)

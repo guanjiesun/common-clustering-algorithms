@@ -10,6 +10,9 @@ from kmeans import kmeans as kms
 from kmeans import three_way_kmeans as twkms
 from kmeans import get_cores_fringes
 from kmeans import get_coredata_corelabels
+from kmeans_gb import gb_kmeans
+from kmeans_gb import get_sample_labels
+from gbs import generate_gbs
 
 
 def calculate_dbi(data: np.ndarray, clusters: list[np.ndarray]) -> float:
@@ -181,48 +184,61 @@ def calculate_dunn(data: np.ndarray, clusters: list[np.ndarray]) -> float:
 
 def main() -> None:
     """计算K-Means和3WK-Means算法的DBI"""
+
     # 加载数据
-    data = np.loadtxt('sample.txt')
+    dataset = np.loadtxt('sample.txt')
 
     # 对于K-Means, get_coredata_corelabels返回的数据集就是data的副本
-    _, clusters = kms(data, k=3)
-    _, labels = get_coredata_corelabels(data, clusters)
+    _, clusters = kms(dataset, k=3)
+    _, labels = get_coredata_corelabels(dataset, clusters)
 
-    # 获取核心域的数据集和每一个样本的簇标签
-    _, clusters_3w = twkms(data, k=3, epsilon=2.64)
-    cores_data, cores_labels = get_coredata_corelabels(data, clusters_3w)
+    # 对于3WK-Means, 获取核心域的数据集和样本的簇标签
+    _, clusters_3w = twkms(dataset, k=3, epsilon=2.64)
+    cores_data, cores_labels = get_coredata_corelabels(dataset, clusters_3w)
 
-    # 使用自定义函数计算K-Means的validity indices
-    dbi_kms = calculate_dbi(data, clusters)
-    asi_kms = calculate_silhouette_score(data, clusters)
-    chi_kms = calculate_chi(data, clusters)
-    dunn_kms = calculate_dunn(data, clusters)
+    # 对于GB-KMeans, 获取样本的簇标签
+    gbs = generate_gbs(dataset)
+    _, gb_labels_gb_kmeans = gb_kmeans(gbs, k=3)
+    sample_labels_gb_kmeans = get_sample_labels(gbs, gb_labels_gb_kmeans)
 
-    # 使用第三方库函数计算K-Means的validity indices
-    dbi_kms_std = dbi(data, labels)
-    asi_kms_std = asi(data, labels)
-    chi_kms_std = chi(data, labels)
-    dunn_kms_std = dunn(pairwise_distances(data), labels)
+    # 使用自定义函数计算KMeans的validity indices
+    dbi_kms = calculate_dbi(dataset, clusters)
+    asi_kms = calculate_silhouette_score(dataset, clusters)
+    chi_kms = calculate_chi(dataset, clusters)
+    dunn_kms = calculate_dunn(dataset, clusters)
 
-    # 使用自定义函数计算3WK-Means的validity indices
-    dbi_3w = calculate_dbi(data, clusters_3w)
-    asi_3w = calculate_silhouette_score(data, clusters_3w)
-    chi_3w = calculate_chi(data, clusters_3w)
-    dunn_3w = calculate_dunn(data, clusters_3w)
+    # 使用第三方库函数计算KMeans的validity indices
+    dbi_kms_std = dbi(dataset, labels)
+    asi_kms_std = asi(dataset, labels)
+    chi_kms_std = chi(dataset, labels)
+    dunn_kms_std = dunn(pairwise_distances(dataset), labels)
 
-    # 使用第三方库函数计算3WK-Means的validity indices
+    # 使用自定义函数计算3W-KMeans的validity indices
+    dbi_3w = calculate_dbi(dataset, clusters_3w)
+    asi_3w = calculate_silhouette_score(dataset, clusters_3w)
+    chi_3w = calculate_chi(dataset, clusters_3w)
+    dunn_3w = calculate_dunn(dataset, clusters_3w)
+
+    # 使用第三方库函数计算3W-KMeans的validity indices
     dbi_3w_std = dbi(cores_data, cores_labels)
     asi_3w_std = asi(cores_data, cores_labels)
     chi_3w_std = chi(cores_data, cores_labels)
     dunn_3w_std = dunn(pairwise_distances(cores_data), cores_labels)
 
+    # 使用第三方库函数计算GB-KMeans的validity indices
+    dbi_gb_std = dbi(dataset, sample_labels_gb_kmeans)
+    asi_gb_std = asi(dataset, sample_labels_gb_kmeans)
+    chi_gb_std = chi(dataset, sample_labels_gb_kmeans)
+    dunn_gb_std = dunn(pairwise_distances(dataset), sample_labels_gb_kmeans)
+
     # 设置字典和DataFrame
     index = ['DBI', 'ASI', 'CHI', 'DUNN']
     dictionary = {
-        "K-Means(std)": np.round([dbi_kms_std, asi_kms_std, chi_kms_std, dunn_kms_std], 4),
-        "K-Means": np.round([dbi_kms, asi_kms, chi_kms, dunn_kms], 4),
-        "3WK-Means": np.round([dbi_3w, asi_3w, chi_3w, dunn_3w], 4),
-        "3WK-Means(std)": np.round([dbi_3w_std, asi_3w_std, chi_3w_std, dunn_3w_std], 4),
+        "KMeans(std)": np.round([dbi_kms_std, asi_kms_std, chi_kms_std, dunn_kms_std], 4),
+        "KMeans": np.round([dbi_kms, asi_kms, chi_kms, dunn_kms], 4),
+        "GB-KMeans": np.round([dbi_gb_std, asi_gb_std, chi_gb_std, dunn_gb_std], 4),
+        "3W-KMeans": np.round([dbi_3w, asi_3w, chi_3w, dunn_3w], 4),
+        "3W-KMeans(std)": np.round([dbi_3w_std, asi_3w_std, chi_3w_std, dunn_3w_std], 4),
     }
     df = pd.DataFrame(dictionary, index=index)
     print(df)
