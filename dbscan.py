@@ -82,22 +82,14 @@ def main():
     visualize_dbscan_result(dataset, labels_std)
     print(np.unique(labels_std))
 
-    # 获取所有点的索引集合
-    all_indices = set(range(len(dataset)))
-
-    # 获取核心点的索引集合
+    # 获取核心点，边界点和噪声点
+    all_indices = set(range(len(dataset)))  # 获取所有点的索引集合
     # noinspection PyUnresolvedReferences
-    core_indices = set(clustering.core_sample_indices_)
+    core_indices = set(clustering.core_sample_indices_)  # 获取核心点的索引集合
+    noise_indices = set(np.where(labels_std == -1)[0])  # 获取噪声点的索引集合
+    border_indices = all_indices - core_indices - noise_indices  # 使用集合运算获取边界点的索引集合
 
-    # 获取噪声点的索引集合
-    # noinspection PyUnresolvedReferences
-    noise_indices = set(np.where(clustering.labels_ == -1)[0])
-
-    # 使用集合运算获取边界点的索引集合
-    border_points = all_indices - core_indices - noise_indices
-    print(len(border_points))
-
-    # # 使用自己实现的DBSCAN算法
+    # 使用自己实现的DBSCAN算法
     # labels = dbscan(dataset, eps=eps, min_samples=min_samples)
     # visualize_dbscan_result(dataset, labels)
     # print(np.unique(labels))
