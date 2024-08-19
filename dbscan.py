@@ -61,31 +61,46 @@ def visualize_dbscan_result(dataset: np.ndarray, labels: np.ndarray) -> None:
 
 
 def main():
-    # dataset = np.loadtxt('sample.txt')  # 0.5, 5
-    import pandas as pd
+    dataset = np.loadtxt('sample.txt')  # 0.5, 5
+    # import pandas as pd
     # dataset = pd.read_csv('./datasets/D5.csv').to_numpy()  # 0.5, 5
     # dataset = pd.read_csv('./datasets/D6.csv').to_numpy()  # 1, 5
     # dataset = pd.read_csv('./datasets/D7.csv').to_numpy()  # 6, 5
-    dataset = pd.read_csv('./datasets/D8.csv').to_numpy()  # 9, 5
+    # dataset = pd.read_csv('./datasets/D8.csv').to_numpy()  # 9, 5
     # dataset = pd.read_csv('./datasets/D9.csv').to_numpy()  # 0.90, 5
     # dataset = pd.read_csv('./datasets/D10.csv').to_numpy()  # 0.15, 5
     # dataset = pd.read_csv('./datasets/D11.csv').to_numpy()  # 0.15, 5
     # dataset = pd.read_csv('./datasets/D12.csv').to_numpy()  # 0.5, 5
 
-    eps, min_samples = 9, 5
+    eps, min_samples = 0.5, 5
 
     # 使用sklearn中的DBSCAN算法
+    clustering = DBSCAN(eps=eps, min_samples=min_samples).fit(dataset)
+
     # noinspection PyUnresolvedReferences
-    labels_std = DBSCAN(eps=eps, min_samples=min_samples).fit(dataset).labels_
+    labels_std = clustering.labels_
+    visualize_dbscan_result(dataset, labels_std)
     print(np.unique(labels_std))
 
-    # 使用自己实现的DBSCAN算法
-    labels = dbscan(dataset, eps=eps, min_samples=min_samples)
-    print(np.unique(labels))
+    # 获取所有点的索引集合
+    all_indices = set(range(len(dataset)))
 
-    # 可视化聚类结果
-    visualize_dbscan_result(dataset, labels_std)
-    visualize_dbscan_result(dataset, labels)
+    # 获取核心点的索引集合
+    # noinspection PyUnresolvedReferences
+    core_indices = set(clustering.core_sample_indices_)
+
+    # 获取噪声点的索引集合
+    # noinspection PyUnresolvedReferences
+    noise_indices = set(np.where(clustering.labels_ == -1)[0])
+
+    # 使用集合运算获取边界点的索引集合
+    border_points = all_indices - core_indices - noise_indices
+    print(len(border_points))
+
+    # # 使用自己实现的DBSCAN算法
+    # labels = dbscan(dataset, eps=eps, min_samples=min_samples)
+    # visualize_dbscan_result(dataset, labels)
+    # print(np.unique(labels))
 
 
 if __name__ == '__main__':
