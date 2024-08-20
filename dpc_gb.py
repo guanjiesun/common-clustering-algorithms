@@ -69,14 +69,14 @@ def visualize_gbs_centroids(gbs: list[GranularBall], gb_centroids: list[int], gb
     plt.show()
 
 
-def get_sample_labels(dataset: np.ndarray, labels: np.ndarray, gbs) -> np.ndarray:
+def get_sample_labels(dataset: np.ndarray, gb_labels: np.ndarray, gbs) -> np.ndarray:
     """获取每一个样本的簇标签"""
     n_samples = len(dataset)
     sample_labels = np.full(n_samples, -1)
     for i, gb in enumerate(gbs):
         for sample_idx in gb.indices:
             # 样本的簇标签和它所属的粒球的簇标签保持一致
-            sample_labels[sample_idx] = labels[i]
+            sample_labels[sample_idx] = gb_labels[i]
 
     return sample_labels
 
@@ -121,7 +121,7 @@ def main() -> None:
     # 获取每一个粒球的簇标签
     gb_labels = assign_gb_to_clusters(rho, gb_centroids, nearest_neighbor)
 
-    # 可视化粒球空间，每一个粒球不显示圆心，不同簇标签的粒球显示不同的颜色
+    # 可视化粒球空间，每一个粒球只显示圆心，不同簇标签的粒球显示不同的颜色
     visualize_gbs_centroids(gbs, gb_centroids, gb_labels)
 
     # 获取每一个样本的簇标签
