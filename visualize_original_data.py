@@ -3,11 +3,7 @@ import matplotlib.pyplot as plt
 
 
 def visualize_original_data(data: np.ndarray) -> None:
-    """
-    可视化原始数据
-    :param data: np.ndarray, shape=(n_samples, m_features), ndim=2
-    :return: None
-    """
+    """可视化原始数据"""
     fig, ax = plt.subplots()
     ax.scatter(data[:, 0], data[:, 1], s=5, marker='.', color='black')
     ax.set_title('Original Data')
