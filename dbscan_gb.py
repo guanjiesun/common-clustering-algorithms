@@ -63,7 +63,7 @@ def main() -> None:
     # 对粒球空间进行DBSCAN聚类，然后获取每一个粒球的簇标签
     gb_centers = np.array([gbs[i].centroid for i in range(len(gbs))])
     # noinspection PyUnresolvedReferences
-    gb_labels = DBSCAN(eps=0.85, min_samples=5).fit(gb_centers).labels_
+    gb_labels = DBSCAN(eps=0.8, min_samples=6).fit(gb_centers).labels_
     # 可视化粒球空间（只绘制每一个粒球的质心）
     visualize_gbs_centroids(gbs, gb_labels)
 
