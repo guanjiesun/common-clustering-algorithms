@@ -69,9 +69,14 @@ def visualize_gbs_centroids(gbs: list[GranularBall], gb_centroids: list[int], gb
     plt.show()
 
 
-def get_sample_labels(dataset: np.ndarray, gb_labels: np.ndarray, gbs) -> np.ndarray:
-    """获取每一个样本的簇标签"""
-    n_samples = len(dataset)
+def get_sample_labels(gb_labels: np.ndarray, gbs) -> np.ndarray:
+    """获取数据集中每一个样本的簇标签"""
+    n_samples = 0
+    for gb in gbs:
+        # 计算数据集样本点个数
+        n_samples += len(gb.indices)
+
+    # 初始化每一个样本的簇标签为-1
     sample_labels = np.full(n_samples, -1)
     for i, gb in enumerate(gbs):
         for sample_idx in gb.indices:
@@ -125,7 +130,7 @@ def main() -> None:
     visualize_gbs_centroids(gbs, gb_centroids, gb_labels)
 
     # 获取每一个样本的簇标签
-    sample_labels = get_sample_labels(dataset, gb_labels, gbs)
+    sample_labels = get_sample_labels(gb_labels, gbs)
 
     # 可视化GB-DPC聚类结果
     visualize_gbdp_clustering(dataset, sample_labels)
