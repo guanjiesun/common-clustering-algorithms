@@ -5,7 +5,7 @@ from sklearn.metrics import pairwise_distances
 
 
 def range_query(dataset: np.ndarray, i: int, epsilon: float) -> np.ndarray:
-    """求样本点i的epsilon邻域"""
+    """获取样本点i的epsilon邻域"""
     distances = pairwise_distances(dataset, dataset[[i]])
     judge_distances = (distances <= epsilon)
     return np.where(judge_distances.flatten() == 1)[0]
@@ -14,7 +14,7 @@ def range_query(dataset: np.ndarray, i: int, epsilon: float) -> np.ndarray:
 def dbscan(dataset: np.ndarray, eps: float, min_samples: int) -> np.ndarray:
     """
     动手实现DBSCAN算法(参考英文维基百科)
-    dbscan共有三种类型的点
+    dbscan聚类结果产生三种类型的点
     1. 核心点：密度大于等于min_samples的点
     2. 噪声点：密度小于min_samples，同时不是任何一个核心点的邻域点
     3. 边界点：密度小于min_samples，同时是某一个核心点的邻域点
@@ -22,17 +22,16 @@ def dbscan(dataset: np.ndarray, eps: float, min_samples: int) -> np.ndarray:
     n_samples = len(dataset)
 
     # 标签为-2，表示此样本点未被访问过
-    labels = np.full(n_samples, -2)
+    labels = np.full(shape=n_samples, fill_value=-2)
     c = 0
     for i in range(n_samples):
         if labels[i] != -2:
             continue  # 如果点已经被处理，跳过
 
-        # 获取样本点i的邻域
-        neighbors = range_query(dataset, i, eps)
+        neighbors = range_query(dataset, i, eps)  # 获取样本点i的eps邻域
 
         if neighbors.size < min_samples:
-            labels[i] = -1  # 非核心点（包括边界点和噪声点）的的标签设置为-1
+            labels[i] = -1  # 非核心点（包括边界点和噪声点）的的标签设置为-1，然后跳过处理下一个点
             continue
 
         # 若样本点i是核心点，则运行以下代码
@@ -95,9 +94,6 @@ def main():
     noise_indices = set(np.where(labels == -1)[0])  # 获取噪声点的索引集合
     border_indices = all_indices - core_indices - noise_indices  # 使用集合运算获取边界点的索引集合
     print(len(all_indices), len(core_indices), len(noise_indices), len(border_indices))
-
-    # 使用自定义的dbscan算法
-    visualize_dbscan_result(dataset, dbscan(dataset, eps, min_samples))
 
 
 if __name__ == '__main__':
