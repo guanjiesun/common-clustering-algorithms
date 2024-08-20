@@ -5,14 +5,20 @@ from sklearn.metrics import pairwise_distances
 
 
 def range_query(dataset: np.ndarray, i: int, epsilon: float) -> np.ndarray:
-    """求样本点p的epsilon邻域"""
+    """求样本点i的epsilon邻域"""
     distances = pairwise_distances(dataset, dataset[[i]])
-    judge_distances = distances <= epsilon
+    judge_distances = (distances <= epsilon)
     return np.where(judge_distances.flatten() == 1)[0]
 
 
 def dbscan(dataset: np.ndarray, eps: float, min_samples: int) -> np.ndarray:
-    """动手实现DBSCAN算法(参考英文维基百科)"""
+    """
+    动手实现DBSCAN算法(参考英文维基百科)
+    dbscan共有三种类型的点
+    1. 核心点：密度大于等于min_samples的点
+    2. 噪声点：密度小于min_samples，同时不是任何一个核心点的邻域点
+    3. 边界点：密度小于min_samples，同时是某一个核心点的邻域点
+    """
     n_samples = len(dataset)
 
     # 标签为-2，表示此样本点未被访问过
@@ -26,27 +32,27 @@ def dbscan(dataset: np.ndarray, eps: float, min_samples: int) -> np.ndarray:
         neighbors = range_query(dataset, i, eps)
 
         if neighbors.size < min_samples:
-            labels[i] = -1  # 噪声点的标签为-1
+            labels[i] = -1  # 非核心点（包括边界点和噪声点）的的标签设置为-1
             continue
 
-        # 如果样本点i既没有被处理过，也不是噪声点，那么i就是核心点，给i分配一个簇标签
+        # 若样本点i是核心点，则运行以下代码
         labels[i] = c
 
-        # 获取样本点i的种子集合(不包含i)
-        seed_set = np.delete(neighbors, np.where(neighbors == i)[0])
-        seed_set = set(seed_set)
+        # 获取样本点i的种子集合(i所有的邻域点，但是不包含i)
+        seed_set = set(np.delete(neighbors, np.where(neighbors == i)[0]))
 
-        # 处理样本点i邻域中所有的点
+        # 处理样本点i所有的邻域点
         while seed_set:
             j = seed_set.pop()
             if labels[j] == -1:
-                labels[j] = c  # 如果i的邻域j之前的标签是-1，那么让j的标签和i保持一致，即让j变成边界点
+                labels[j] = c  # 让j的簇标签和核心点i的簇标签保持一致
             if labels[j] != -2:
                 continue  # 如果j已经被处理过，则跳过循环，继续处理样本点i的其他邻域点
 
             labels[j] = c
             j_neighbors = range_query(dataset, j, eps)
             if j_neighbors.size >= min_samples:
+                # 如果j也是核心点，那么将j的邻域点加入种子集合
                 seed_set.update(set(j_neighbors))
 
         c += 1
@@ -89,6 +95,9 @@ def main():
     noise_indices = set(np.where(labels == -1)[0])  # 获取噪声点的索引集合
     border_indices = all_indices - core_indices - noise_indices  # 使用集合运算获取边界点的索引集合
     print(len(all_indices), len(core_indices), len(noise_indices), len(border_indices))
+
+    # 使用自定义的dbscan算法
+    visualize_dbscan_result(dataset, dbscan(dataset, eps, min_samples))
 
 
 if __name__ == '__main__':
