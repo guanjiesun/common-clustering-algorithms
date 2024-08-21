@@ -11,7 +11,7 @@ def dbscan(dataset: np.ndarray, eps: float, min_samples: int) -> tuple[np.ndarra
     1. 核心点：密度大于等于min_samples的点
     2. 噪声点：密度小于min_samples，同时不是任何一个核心点的邻域点
     3. 边界点：密度小于min_samples，同时是某一个核心点的邻域点
-    聚类结果：每一个簇由若干个核心点和边界点组成，边界点不属于任何簇，边界点的标签为-1
+    聚类结果：每一个簇由若干个核心点和边界点组成，噪声点不属于任何簇，噪声点的标签为-1
     """
     def range_query(data: np.ndarray, idx: int, epsilon: float) -> np.ndarray:
         """获取样本点i的epsilon邻域"""
@@ -76,6 +76,7 @@ def dbscan(dataset: np.ndarray, eps: float, min_samples: int) -> tuple[np.ndarra
 def visualize_dbscan_result(dataset: np.ndarray, labels: np.ndarray) -> None:
     """可视化sklean中的DBSCAN算法"""
     plt.scatter(dataset[:, 0], dataset[:, 1], c=labels, cmap='plasma', s=15, marker='o')
+    plt.title("DBSCAN Clustering")
     plt.show()
 
 
@@ -97,6 +98,7 @@ def main():
     clustering = DBSCAN(eps=eps, min_samples=min_samples).fit(dataset)
 
     # 获取样本点的标签
+    # noinspection PyUnresolvedReferences
     labels = clustering.labels_
     visualize_dbscan_result(dataset, labels)
     print(np.unique(labels))
@@ -105,6 +107,7 @@ def main():
     all_indices = np.array(range(len(dataset)))
 
     # 获取核心点的索引集合
+    # noinspection PyUnresolvedReferences
     core_indices = clustering.core_sample_indices_
     # 获取噪声点的索引集合
     noise_indices = np.where(labels == -1)[0]
