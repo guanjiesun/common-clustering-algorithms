@@ -4,14 +4,7 @@ from sklearn.cluster import DBSCAN
 from sklearn.metrics import pairwise_distances
 
 
-def range_query(dataset: np.ndarray, i: int, epsilon: float) -> np.ndarray:
-    """获取样本点i的epsilon邻域"""
-    distances = pairwise_distances(dataset, dataset[[i]])
-    judge_distances = (distances <= epsilon)
-    return np.where(judge_distances.flatten() == 1)[0]
-
-
-def dbscan(dataset: np.ndarray, eps: float, min_samples: int) -> tuple[np.ndarray, set]:
+def dbscan(dataset: np.ndarray, eps: float, min_samples: int) -> tuple[np.ndarray, np.ndarray]:
     """
     来自英文维基百科的DBSCAN算法
     dbscan聚类有三种类型的点
@@ -20,7 +13,15 @@ def dbscan(dataset: np.ndarray, eps: float, min_samples: int) -> tuple[np.ndarra
     3. 边界点：密度小于min_samples，同时是某一个核心点的邻域点
     聚类结果：每一个簇由若干个核心点和边界点组成，边界点不属于任何簇，边界点的标签为-1
     """
+    def range_query(data: np.ndarray, idx: int, epsilon: float) -> np.ndarray:
+        """获取样本点i的epsilon邻域"""
+        distances = pairwise_distances(data, data[[idx]])
+        judge_distances = (distances <= epsilon)
+        return np.where(judge_distances.flatten() == 1)[0]
+
+    # 求出样本点数量
     n_samples = len(dataset)
+    # 初始化核心点索引
     core_indices = list()
 
     # 初始化所有点的标签为-2(未访问)
@@ -69,7 +70,7 @@ def dbscan(dataset: np.ndarray, eps: float, min_samples: int) -> tuple[np.ndarra
                         seed_set.update(set(j_neighbors))
                         core_indices.append(j)
 
-    return labels, set(core_indices)
+    return labels, np.array(core_indices)
 
 
 def visualize_dbscan_result(dataset: np.ndarray, labels: np.ndarray) -> None:
@@ -100,17 +101,28 @@ def main():
     visualize_dbscan_result(dataset, labels)
     print(np.unique(labels))
 
-    # 获取核心点，边界点和噪声点
-    all_indices = set(range(len(dataset)))  # 获取所有点的索引集合
-    core_indices = set(clustering.core_sample_indices_)  # 获取核心点的索引集合
-    noise_indices = set(np.where(labels == -1)[0])  # 获取噪声点的索引集合
-    border_indices = all_indices - core_indices - noise_indices  # 使用集合运算获取边界点的索引集合
-    print(len(all_indices), len(core_indices), len(noise_indices), len(border_indices))
+    # 获取所有点的索引集合
+    all_indices = np.array(range(len(dataset)))
+
+    # 获取核心点的索引集合
+    core_indices = clustering.core_sample_indices_
+    # 获取噪声点的索引集合
+    noise_indices = np.where(labels == -1)[0]
+    # 获取边界点的索引集合
+    border_indices = np.array(list(set(all_indices) - set(core_indices) - set(noise_indices)))
 
     # 使用自定义的dbscan函数
     my_labels, my_core_indices = dbscan(dataset, eps, min_samples)
+    # 获取噪声点的索引集合
+    my_noise_indices = np.where(my_labels == -1)[0]
+    # 获取边界点的索引集合
+    my_border_indices = np.array(list(set(all_indices) - set(my_core_indices) - set(my_noise_indices)))
+
+    # 判断自定义的dbscan是否相等
     print(np.all(my_labels == labels))
-    print(core_indices == my_core_indices)
+    print(set(core_indices) == set(my_core_indices))
+    print(set(noise_indices) == set(my_noise_indices))
+    print(set(border_indices) == set(my_border_indices))
 
 
 if __name__ == '__main__':
