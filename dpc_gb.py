@@ -73,7 +73,7 @@ def get_sample_labels(gb_labels: np.ndarray, gbs) -> np.ndarray:
     """获取数据集中每一个样本的簇标签"""
     n_samples = 0
     for gb in gbs:
-        # 计算数据集样本点个数
+        # 计算数据集样本点个数，用于初始化sample_labels
         n_samples += len(gb.indices)
 
     # 初始化每一个样本的簇标签为-1

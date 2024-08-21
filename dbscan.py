@@ -11,52 +11,65 @@ def range_query(dataset: np.ndarray, i: int, epsilon: float) -> np.ndarray:
     return np.where(judge_distances.flatten() == 1)[0]
 
 
-def dbscan(dataset: np.ndarray, eps: float, min_samples: int) -> np.ndarray:
+def dbscan(dataset: np.ndarray, eps: float, min_samples: int) -> tuple[np.ndarray, set]:
     """
-    动手实现DBSCAN算法(参考英文维基百科)
-    dbscan聚类结果产生三种类型的点
+    来自英文维基百科的DBSCAN算法
+    dbscan聚类有三种类型的点
     1. 核心点：密度大于等于min_samples的点
     2. 噪声点：密度小于min_samples，同时不是任何一个核心点的邻域点
     3. 边界点：密度小于min_samples，同时是某一个核心点的邻域点
+    聚类结果：每一个簇由若干个核心点和边界点组成，边界点不属于任何簇，边界点的标签为-1
     """
     n_samples = len(dataset)
+    core_indices = list()
 
-    # 标签为-2，表示此样本点未被访问过
+    # 初始化所有点的标签为-2(未访问)
     labels = np.full(shape=n_samples, fill_value=-2)
-    c = 0
+    c = -1
     for i in range(n_samples):
         if labels[i] != -2:
-            continue  # 如果点已经被处理，跳过
-
-        neighbors = range_query(dataset, i, eps)  # 获取样本点i的eps邻域
-
-        if neighbors.size < min_samples:
-            labels[i] = -1  # 非核心点（包括边界点和噪声点）的的标签设置为-1，然后跳过处理下一个点
+            # 如果i点已经被访问，跳过
             continue
 
-        # 若样本点i是核心点，则运行以下代码
-        labels[i] = c
+        # 获取样本点i的eps邻域
+        neighbors = range_query(dataset, i, eps)
 
-        # 获取样本点i的种子集合(i所有的邻域点，但是不包含i)
-        seed_set = set(np.delete(neighbors, np.where(neighbors == i)[0]))
+        if neighbors.size < min_samples:
+            # 若样本点i是非核心点（包括边界点和噪声点）
+            labels[i] = -1  # 标签设置为-1
+            continue  # i点处理完毕，处理下一个样本点
+        else:
+            # 若样本点i是核心点，则创建一个新簇，将当前样本点i加入这个簇
+            c += 1
+            labels[i] = c
+            core_indices.append(i)
 
-        # 处理样本点i所有的邻域点
-        while seed_set:
-            j = seed_set.pop()
-            if labels[j] == -1:
-                labels[j] = c  # 让j的簇标签和核心点i的簇标签保持一致
-            if labels[j] != -2:
-                continue  # 如果j已经被处理过，则跳过循环，继续处理样本点i的其他邻域点
+            # 将样本点i邻域内的其他点加入种子集合
+            seed_set = set(np.delete(neighbors, np.where(neighbors == i)[0]))
 
-            labels[j] = c
-            j_neighbors = range_query(dataset, j, eps)
-            if j_neighbors.size >= min_samples:
-                # 如果j也是核心点，那么将j的邻域点加入种子集合
-                seed_set.update(set(j_neighbors))
+            # 处理样本点i所有的邻域点
+            while seed_set:
+                j = seed_set.pop()
 
-        c += 1
+                if labels[j] != -2:
+                    # 如果j被访问过了，j可能是核心点或者非核心点
+                    if labels[j] == -1:
+                        # j之前被访问过且被标记为非核心点，j又是核心点i的邻域点，因此j是边界点而不是噪声点，并将j加入当前簇
+                        labels[j] = c
+                    else:
+                        # j之前被访问过而且是核心点，则继续处理i的下一个邻域点
+                        continue
+                else:
+                    # 若j之前未被访问，由于i是核心点且j是i的邻域点，因此将j加入当前的簇
+                    labels[j] = c
+                    j_neighbors = range_query(dataset, j, eps)
 
-    return labels
+                    # 进一步判断j是否是核心点，如果是核心点，那么将j的邻域点加入种子集合
+                    if j_neighbors.size >= min_samples:
+                        seed_set.update(set(j_neighbors))
+                        core_indices.append(j)
+
+    return labels, set(core_indices)
 
 
 def visualize_dbscan_result(dataset: np.ndarray, labels: np.ndarray) -> None:
@@ -82,18 +95,22 @@ def main():
     # 使用sklearn中的DBSCAN算法
     clustering = DBSCAN(eps=eps, min_samples=min_samples).fit(dataset)
 
-    # noinspection PyUnresolvedReferences
+    # 获取样本点的标签
     labels = clustering.labels_
     visualize_dbscan_result(dataset, labels)
     print(np.unique(labels))
 
     # 获取核心点，边界点和噪声点
     all_indices = set(range(len(dataset)))  # 获取所有点的索引集合
-    # noinspection PyUnresolvedReferences
     core_indices = set(clustering.core_sample_indices_)  # 获取核心点的索引集合
     noise_indices = set(np.where(labels == -1)[0])  # 获取噪声点的索引集合
     border_indices = all_indices - core_indices - noise_indices  # 使用集合运算获取边界点的索引集合
     print(len(all_indices), len(core_indices), len(noise_indices), len(border_indices))
+
+    # 使用自定义的dbscan函数
+    my_labels, my_core_indices = dbscan(dataset, eps, min_samples)
+    print(np.all(my_labels == labels))
+    print(core_indices == my_core_indices)
 
 
 if __name__ == '__main__':

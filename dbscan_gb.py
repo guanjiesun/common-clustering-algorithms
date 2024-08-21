@@ -6,7 +6,7 @@ from gbs import GranularBall
 from gbs import generate_gbs
 from gbs import verify_gbs
 from gbs import visualize_gbs
-from dbscan import visualize_dbscan_result as visualize_gb_dbscan_result
+# from dbscan import visualize_dbscan_result as visualize_gb_dbscan_result
 
 
 def visualize_original_data(data: np.ndarray) -> None:
@@ -24,7 +24,6 @@ def visualize_gbs_centroids(gbs: list[GranularBall], gb_labels: np.ndarray) -> N
     n_gb = len(gbs)
     gb_centers = [gbs[i].centroid for i in range(n_gb)]
     gb_centers = np.array(gb_centers)
-
     # 绘制粒球的的质心
     ax.scatter(gb_centers[:, 0], gb_centers[:, 1], c=gb_labels, cmap='viridis', marker=',', s=5)
     ax.set_title("Granular Balls Without Circles")
@@ -35,7 +34,7 @@ def get_sample_labels(gb_labels: np.ndarray, gbs) -> np.ndarray:
     """获取数据集中每一个样本的簇标签"""
     n_samples = 0
     for gb in gbs:
-        # 计算数据集样本点个数
+        # 计算数据集样本点个数，用于初始化sample_labels
         n_samples += len(gb.indices)
 
     # 初始化每一个样本的簇标签为-1
@@ -46,6 +45,10 @@ def get_sample_labels(gb_labels: np.ndarray, gbs) -> np.ndarray:
             sample_labels[sample_idx] = gb_labels[i]
 
     return sample_labels
+
+
+def visualize_gb_dbscan_result(dataset: np.ndarray, labels: np.ndarray) -> None:
+    pass
 
 
 def main() -> None:
@@ -69,6 +72,13 @@ def main() -> None:
 
     # 基于获取的每一个粒球的簇标签，可以获得每一个样本点的簇标签
     labels = get_sample_labels(gb_labels, gbs)
+
+    # 获取核心点，边界点和噪声点
+    all_indices = set(range(len(dataset)))  # 获取所有点的索引集合
+    # # noinspection PyUnresolvedReferences
+    # core_indices = set(clustering.core_sample_indices_)  # 获取核心点的索引集合
+    # noise_indices = set(np.where(labels == -1)[0])  # 获取噪声点的索引集合
+    # border_indices = all_indices - core_indices - noise_indices  # 使用集合运算获取边界点的索引集合
 
     # 可视化GB-DBSCAN的聚类结果
     visualize_gb_dbscan_result(dataset, labels)
