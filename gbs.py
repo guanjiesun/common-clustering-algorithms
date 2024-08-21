@@ -6,6 +6,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.patches import Circle
 from sklearn.metrics import pairwise_distances
+from sklearn.cluster import SpectralClustering
 
 from visualize_original_data import visualize_original_data
 
@@ -24,9 +25,32 @@ class GranularBall:
         self.radius = np.max(pairwise_distances(self.data, self.centroid.reshape(1, -1)))
 
 
+def spectral_clustering(dataset: np.ndarray, gb: GranularBall, n_clusters: int = 2):
+    """将一个粒球gb划分为两个粒球gb_child1和gb_child2的谱聚类算法"""
+    data, indices = gb.data, gb.indices
+
+    # 对粒球gb进行谱聚类得到样本标签
+    sc = SpectralClustering(n_clusters=n_clusters, random_state=42, assign_labels='discretize')
+    labels = sc.fit_predict(data)
+
+    # 获取簇
+    clusters = list()
+    for i in range(n_clusters):
+        # indices的作用：确保cluster保存的数据点的索引是在原始数据集中的索引
+        # TODO 一定要保证cluster保存的数据点的索引是在原始数据集中dataset中的索引
+        cluster = indices[np.where(labels == i)[0]]
+        clusters.append(cluster)
+
+    # 求出粒球的划分
+    gb_child1 = GranularBall(dataset, clusters[0])
+    gb_child2 = GranularBall(dataset, clusters[1])
+
+    return gb_child1, gb_child2
+
+
 def kmeans(dataset: np.ndarray, gb: GranularBall, k: int = 2, max_iterations: int = 100,
            tolerance: float = 1e-4) -> tuple[GranularBall, GranularBall]:
-    """将一个粒球gb划分为两个粒球gb_child1和gb_child2的K-Means++聚类算法"""
+    """将一个粒球gb划分为两个粒球gb_child1和gb_child2的K-Means聚类算法"""
 
     # 获取gb的属性
     indices, data, size = gb.indices, gb.data, gb.size
@@ -93,8 +117,9 @@ def generate_gbs(dataset: np.ndarray) -> list[GranularBall]:
         # 使用popleft而不是pop是因为要保持queue先进先出的特性
         gb = queue.popleft()
         if gb.size > threshold:
-            # 如果gb太大，则使用2-means算法将gb划分为两个更小的粒球，然后两个小粒球入队
-            queue.extend(kmeans(dataset, gb, k=2))
+            # 如果gb太大，则使用2-means算法或者谱聚类算法将gb划分为两个更小的粒球，然后两个小粒球入队
+            # queue.extend(kmeans(dataset, gb, k=2))
+            queue.extend(spectral_clustering(dataset, gb, n_clusters=2))
         else:
             # 如果gb大小合适，则将此gb加入gbs
             gbs.append(gb)
