@@ -12,7 +12,7 @@ def visualize_dbscan_result(dataset: np.ndarray, labels: np.ndarray) -> None:
 
 
 def visualize_dbscan_only_core_points(dataset: np.ndarray, labels: np.ndarray, core_indices: np.ndarray) -> None:
-    """只绘制DBSCAN聚类的核心点"""
+    """只绘制DBSCAN聚类的核心点(不绘制边缘点和噪声点)"""
     core_data = dataset[core_indices]
     core_labels = labels[core_indices]
     plt.scatter(core_data[:, 0], core_data[:, 1], c=core_labels, cmap='plasma', s=15, marker='o')
@@ -29,9 +29,13 @@ def range_query(data: np.ndarray, idx: int, eps: float) -> np.ndarray:
 
 def get_three_way_dbscan_result(dataset: np.ndarray, labels: np.ndarray,
                                 core_indices: np.ndarray, noise_indices: np.ndarray,
-                                border_indices: np.ndarray, eps):
-    """返回值是一个列表，每一个列表元素都是包含两个集合的列表"""
-    # 先计算簇的个数
+                                border_indices: np.ndarray, eps) -> list:
+    """
+    每一个簇由正域和边界域表示
+    返回值：result=[[POS1, BND1], [POS2, BND2], [POS3, BND3],...,[POSk, BNDk]]
+    """
+
+    # 先计算簇的个数k
     if -1 in labels:
         k = len(np.unique(labels)) - 1
     else:
@@ -46,7 +50,7 @@ def get_three_way_dbscan_result(dataset: np.ndarray, labels: np.ndarray,
     for core_idx in core_indices:
         clusters[labels[core_idx]][0].add(core_idx)
 
-    # 再将噪声点分配到相应簇的边界域
+    # 再将噪声点分配到相应簇的边缘域
     core_data = dataset[core_indices]
     for noise_idx in noise_indices:
         # 找出距离噪声点最近的核心点
@@ -71,6 +75,39 @@ def get_three_way_dbscan_result(dataset: np.ndarray, labels: np.ndarray,
     return clusters
 
 
+def visualize_three_way_dbscan_result(dataset: np.ndarray, labels: np.ndarray, clusters: list) -> None:
+    # 先计算簇的个数
+    if -1 in labels:
+        k = len(np.unique(labels)) - 1
+    else:
+        k = len(np.unique(labels))
+
+    # 计算所有簇的边界域的并集
+    bnd_indices = set()
+    for i in range(k):
+        cluster = clusters[i]
+        bnd_indices.update(cluster[1])
+
+    # 绘制数据集边缘域的点
+    bnd_data = dataset[list(bnd_indices)]
+    plt.scatter(bnd_data[:, 0], bnd_data[:, 1], c='black', s=15, marker='o')
+
+    # 绘制每一个簇的核心域
+    colors = ['green', 'red', 'blue', 'purple', 'yellow', 'orange',
+              'pink', 'brown', 'black', 'white', 'gray', 'cyan',
+              'magenta', 'teal', 'navy', 'maroon', 'olive', 'lime',
+              'indigo', 'violet', 'turquoise', 'gold', 'silver', 'beige']
+    assert k <= len(colors)
+    for i in range(k):
+        cluster = clusters[i]
+        pos_indices = cluster[0]
+        pos_data = dataset[list(pos_indices)]
+        plt.scatter(pos_data[:, 0], pos_data[:, 1], c=colors[i], s=15, marker='o')
+
+    plt.title("Three-Way DBSCAN Clustering")
+    plt.show()
+
+
 def main():
     """基于DBSCAN的结果，进一步分配"""
     dataset = np.loadtxt('sample.txt')  # 0.5, 5
@@ -82,6 +119,7 @@ def main():
     visualize_dbscan_result(dataset, labels)
     print(np.unique(labels))
 
+    # 获取核心点、噪声点和边界点
     all_indices = np.array(range(len(dataset)))
     # noinspection PyUnresolvedReferences
     core_indices = clustering.core_sample_indices_
@@ -92,7 +130,9 @@ def main():
 
     # 获取三支聚类的结果
     clusters = get_three_way_dbscan_result(dataset, labels, core_indices, noise_indices, border_indices, eps)
-    print(len(clusters))
+
+    # 可视化三支聚类的结果
+    visualize_three_way_dbscan_result(dataset, labels, clusters)
 
 
 if __name__ == '__main__':
