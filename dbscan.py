@@ -75,8 +75,8 @@ def dbscan(dataset: np.ndarray, eps: float, min_samples: int) -> tuple[np.ndarra
 
 def visualize_dbscan_result(dataset: np.ndarray, labels: np.ndarray) -> None:
     """可视化sklean中的DBSCAN算法"""
-    plt.scatter(dataset[:, 0], dataset[:, 1], c=labels, cmap='plasma', s=15, marker='o')
-    plt.title("DBSCAN Clustering")
+    plt.scatter(dataset[:, 0], dataset[:, 1], c=labels, cmap='plasma', s=10, marker='o')
+    plt.title("DBSCAN Clustering Result")
     plt.show()
 
 

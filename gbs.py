@@ -154,7 +154,7 @@ def visualize_gbs(gbs: list[GranularBall]) -> None:
         ax.add_artist(circle)
         ax.scatter(gb.centroid[0], gb.centroid[1], color='red', s=5)
         ax.scatter(gb.data[:, 0], gb.data[:, 1], color='black', marker='.', s=5)
-        ax.set_title("Granular Ball Space")
+        ax.set_title("Granular Balls Based on A Dataset")
         ax.set_aspect('equal', adjustable='box')
 
     plt.show()

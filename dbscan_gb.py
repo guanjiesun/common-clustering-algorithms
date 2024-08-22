@@ -18,15 +18,15 @@ def visualize_original_data(data: np.ndarray) -> None:
     plt.show()
 
 
-def visualize_gbs_centroids(gbs: list[GranularBall], gb_labels: np.ndarray) -> None:
-    """可视化粒球空间：只绘制粒球的质心，不同簇标签的粒球质心显示不同的颜色"""
+def visualize_gbs_centroids_after_dbscan(gbs: list[GranularBall], gb_labels: np.ndarray) -> None:
+    """可视化DBSCAN聚类之后得到的粒球：只绘制粒球的质心，不同簇标签的粒球质心显示不同的颜色"""
     fig, ax = plt.subplots()
     n_gb = len(gbs)
     gb_centers = [gbs[i].centroid for i in range(n_gb)]
     gb_centers = np.array(gb_centers)
     # 绘制粒球的的质心
-    ax.scatter(gb_centers[:, 0], gb_centers[:, 1], c=gb_labels, cmap='viridis', marker=',', s=5)
-    ax.set_title("Granular Balls Without Circles")
+    ax.scatter(gb_centers[:, 0], gb_centers[:, 1], c=gb_labels, cmap='plasma', marker='o', s=10)
+    ax.set_title("Granular Balls Without Circles After DBSCAN")
     plt.show()
 
 
@@ -60,12 +60,14 @@ def main() -> None:
     visualize_gbs(gbs)  # 可视化粒球空间
 
     # 对粒球空间进行DBSCAN聚类，然后获取每一个粒球的簇标签
-    gb_centers = np.array([gbs[i].centroid for i in range(len(gbs))])
-    # noinspection PyUnresolvedReferences
-    gb_labels = DBSCAN(eps=0.85, min_samples=6).fit(gb_centers).labels_
+    gb_centroids = np.array([gbs[i].centroid for i in range(len(gbs))])
+    eps, min_samples = 0.75, 6
+    clustering = DBSCAN(eps=eps, min_samples=min_samples).fit(gb_centroids)
+    gb_labels = clustering.labels_
+    print(np.unique(gb_labels))
 
     # 可视化粒球空间（只绘制每一个粒球的质心）
-    visualize_gbs_centroids(gbs, gb_labels)
+    visualize_gbs_centroids_after_dbscan(gbs, gb_labels)
 
     # 基于粒球簇标签，可以获取样本点的簇标签
     sample_labels = get_sample_labels(gb_labels, gbs)
