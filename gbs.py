@@ -178,7 +178,7 @@ def main() -> None:
     """
 
     # 载入数据
-    dataset_path = Path('./datasets/D1.csv')
+    dataset_path = Path('./datasets/D7.csv')
     dataset = pd.read_csv(dataset_path, header=None).to_numpy()
 
     # 生成粒球空间
