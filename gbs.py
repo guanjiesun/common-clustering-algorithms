@@ -8,7 +8,14 @@ from matplotlib.patches import Circle
 from sklearn.metrics import pairwise_distances
 from sklearn.cluster import SpectralClustering
 
-from visualize_original_data import visualize_original_data
+
+def visualize_original_data(data: np.ndarray) -> None:
+    """可视化原始数据"""
+    fig, ax = plt.subplots()
+    ax.scatter(data[:, 0], data[:, 1], s=5, marker='.', color='black')
+    ax.set_title('Original Data')
+    ax.set_aspect('equal', adjustable='box')
+    plt.show()
 
 
 class GranularBall:
@@ -26,7 +33,10 @@ class GranularBall:
 
 
 def spectral_clustering(dataset: np.ndarray, gb: GranularBall, n_clusters: int = 2):
-    """将一个粒球gb划分为两个粒球gb_child1和gb_child2的谱聚类算法"""
+    """
+    TODO sklearn中的谱聚类算法有点问题，慎用！！
+    将一个粒球gb划分为两个粒球gb_child1和gb_child2的谱聚类算法
+    """
     data, indices = gb.data, gb.indices
 
     # 对粒球gb进行谱聚类得到样本标签
@@ -118,8 +128,8 @@ def generate_gbs(dataset: np.ndarray) -> list[GranularBall]:
         gb = queue.popleft()
         if gb.size > threshold:
             # 如果gb太大，则使用2-means算法或者谱聚类算法将gb划分为两个更小的粒球，然后两个小粒球入队
-            # queue.extend(kmeans(dataset, gb, k=2))
-            queue.extend(spectral_clustering(dataset, gb, n_clusters=2))
+            queue.extend(kmeans(dataset, gb, k=2))
+            # queue.extend(spectral_clustering(dataset, gb, n_clusters=2))
         else:
             # 如果gb大小合适，则将此gb加入gbs
             gbs.append(gb)
@@ -152,9 +162,9 @@ def visualize_gbs(gbs: list[GranularBall]) -> None:
         # 创建圆, 绘制数据点, 绘制圆, 绘制圆心
         circle = Circle((float_x, float_y), float_radius, fill=False, color='blue')
         ax.add_artist(circle)
-        ax.scatter(gb.centroid[0], gb.centroid[1], color='red', s=5)
+        ax.scatter(gb.centroid[0], gb.centroid[1], color='red', marker='o', s=10)
         ax.scatter(gb.data[:, 0], gb.data[:, 1], color='black', marker='.', s=5)
-        ax.set_title("Granular Balls Based on A Dataset")
+        ax.set_title("Granular Balls")
         ax.set_aspect('equal', adjustable='box')
 
     plt.show()
@@ -162,7 +172,7 @@ def visualize_gbs(gbs: list[GranularBall]) -> None:
 
 def main() -> None:
     """
-    1. 基于一个给定的数据集，生成粒球空间
+    1. 基于给定数据集，生成粒球空间
     2. 验证粒球空间的正确性
     3. 可视化粒球空间
     """
