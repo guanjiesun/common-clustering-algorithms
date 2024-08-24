@@ -8,15 +8,6 @@ from matplotlib.patches import Circle
 from sklearn.metrics import pairwise_distances
 
 
-def visualize_original_data(data: np.ndarray) -> None:
-    """可视化原始数据"""
-    fig, ax = plt.subplots()
-    ax.scatter(data[:, 0], data[:, 1], s=5, marker='.', color='black')
-    ax.set_title('Original Data')
-    ax.set_aspect('equal', adjustable='box')
-    plt.show()
-
-
 class GranularBall:
     def __init__(self, dataset: np.ndarray, indices: np.ndarray):
         """
@@ -139,6 +130,15 @@ def visualize_gbs(gbs: list[GranularBall]) -> None:
         ax.set_title("Granular Balls")
         ax.set_aspect('equal', adjustable='box')
 
+    plt.show()
+
+
+def visualize_original_data(data: np.ndarray) -> None:
+    """可视化原始数据"""
+    fig, ax = plt.subplots()
+    ax.scatter(data[:, 0], data[:, 1], s=5, marker='.', color='black')
+    ax.set_title('Original Data')
+    ax.set_aspect('equal', adjustable='box')
     plt.show()
 
 
