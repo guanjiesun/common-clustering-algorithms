@@ -55,12 +55,12 @@ def dbscan(dataset: np.ndarray, eps: float, min_samples: int) -> tuple[np.ndarra
                 j = seed_set.pop()
 
                 if labels[j] != -2:
-                    # 如果j被访问过了，j可能是核心点或者非核心点
+                    # 如果j被访问过了，那么j有以下两种可能：j是核心点或者j是非核心点
                     if labels[j] == -1:
                         # j之前被访问过且被标记为非核心点，j又是核心点i的邻域点，因此j是边界点而不是噪声点，并将j加入当前簇
                         labels[j] = c
                     else:
-                        # j之前被访问过而且是核心点，则继续处理i的下一个邻域点
+                        # j之前被访问过而且被标记为核心点，则继续处理i的下一个邻域点
                         continue
                 else:
                     # 若j之前未被访问，由于i是核心点且j是i的邻域点，因此将j加入当前的簇
