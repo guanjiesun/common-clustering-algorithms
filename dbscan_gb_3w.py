@@ -118,7 +118,7 @@ def main() -> None:
 
     # TODO 对粒球进行GB-DBSCAN聚类，得到三种类型的粒球：核心粒球、边界粒球和噪声粒球
     gb_centroids = np.array([gbs[i].centroid for i in range(len(gbs))])
-    eps, min_samples = 0.75, 6
+    eps, min_samples = 0.8, 6
     clustering = DBSCAN(eps=eps, min_samples=min_samples).fit(gb_centroids)
     # 核心粒球、边界粒球的簇标签是0, 1, 2..., 噪声粒球的簇标签是-1, 噪声粒球可能不存在
     gb_labels = clustering.labels_
