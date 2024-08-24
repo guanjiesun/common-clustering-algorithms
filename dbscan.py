@@ -4,6 +4,13 @@ from sklearn.cluster import DBSCAN
 from sklearn.metrics import pairwise_distances
 
 
+def range_query(data: np.ndarray, idx: int, epsilon: float) -> np.ndarray:
+    """获取样本点i的epsilon邻域"""
+    distances = pairwise_distances(data, data[[idx]])
+    judge_distances = (distances <= epsilon)
+    return np.where(judge_distances.flatten() == 1)[0]
+
+
 def dbscan(dataset: np.ndarray, eps: float, min_samples: int) -> tuple[np.ndarray, np.ndarray]:
     """
     来自英文维基百科的DBSCAN算法
@@ -13,11 +20,6 @@ def dbscan(dataset: np.ndarray, eps: float, min_samples: int) -> tuple[np.ndarra
     3. 边界点：密度小于min_samples，同时是某一个核心点的邻域点
     聚类结果：每一个簇由若干个核心点和边界点组成，噪声点不属于任何簇，噪声点的标签为-1
     """
-    def range_query(data: np.ndarray, idx: int, epsilon: float) -> np.ndarray:
-        """获取样本点i的epsilon邻域"""
-        distances = pairwise_distances(data, data[[idx]])
-        judge_distances = (distances <= epsilon)
-        return np.where(judge_distances.flatten() == 1)[0]
 
     # 求出样本点数量
     n_samples = len(dataset)
@@ -75,13 +77,13 @@ def dbscan(dataset: np.ndarray, eps: float, min_samples: int) -> tuple[np.ndarra
 
 def visualize_dbscan_result(dataset: np.ndarray, labels: np.ndarray) -> None:
     """可视化sklean中的DBSCAN算法"""
-    plt.scatter(dataset[:, 0], dataset[:, 1], c=labels, cmap='plasma', s=10, marker='o')
-    plt.title("DBSCAN Clustering Result")
+    plt.scatter(dataset[:, 0], dataset[:, 1], c=labels, cmap='plasma', s=5, marker='o')
+    plt.title("DBSCAN")
     plt.show()
 
 
 def main():
-    dataset = np.loadtxt('sample.txt')  # 0.5, 5
+    dataset = np.loadtxt('sample.txt')  # 0.3, 5
     # import pandas as pd
     # dataset = pd.read_csv('./datasets/D5.csv').to_numpy()  # 0.5, 5
     # dataset = pd.read_csv('./datasets/D6.csv').to_numpy()  # 1, 5
@@ -92,13 +94,12 @@ def main():
     # dataset = pd.read_csv('./datasets/D11.csv').to_numpy()  # 0.15, 5
     # dataset = pd.read_csv('./datasets/D12.csv').to_numpy()  # 0.5, 5
 
-    eps, min_samples = 0.5, 5
+    eps, min_samples = 0.3, 5
 
     # 使用sklearn中的DBSCAN算法
     clustering = DBSCAN(eps=eps, min_samples=min_samples).fit(dataset)
 
     # 获取样本点的标签
-    # noinspection PyUnresolvedReferences
     labels = clustering.labels_
     visualize_dbscan_result(dataset, labels)
     print(np.unique(labels))
@@ -107,7 +108,6 @@ def main():
     all_indices = np.array(range(len(dataset)))
 
     # 获取核心点的索引集合
-    # noinspection PyUnresolvedReferences
     core_indices = clustering.core_sample_indices_
     # 获取噪声点的索引集合
     noise_indices = np.where(labels == -1)[0]
