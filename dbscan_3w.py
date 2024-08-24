@@ -5,18 +5,18 @@ from sklearn.metrics import pairwise_distances
 
 
 def visualize_dbscan_result(dataset: np.ndarray, labels: np.ndarray) -> None:
-    """可视化sklean中的DBSCAN算法"""
-    plt.scatter(dataset[:, 0], dataset[:, 1], c=labels, cmap='plasma', s=10, marker='o')
-    plt.title("DBSCAN Clustering Result")
+    """可视化DBSCAN聚类结果"""
+    plt.scatter(dataset[:, 0], dataset[:, 1], c=labels, cmap='plasma', s=5, marker='o')
+    plt.title("DBSCAN")
     plt.show()
 
 
 def visualize_dbscan_only_core_points(dataset: np.ndarray, labels: np.ndarray, core_indices: np.ndarray) -> None:
-    """只绘制DBSCAN聚类的核心点(不绘制边缘点和噪声点)"""
+    """可视化DBSCAN聚类结果(只绘制核心点，不绘制边界点和噪声点)"""
     core_data = dataset[core_indices]
     core_labels = labels[core_indices]
-    plt.scatter(core_data[:, 0], core_data[:, 1], c=core_labels, cmap='plasma', s=10, marker='o')
-    plt.title("DBSCAN Clustering Result (Only Core Points)")
+    plt.scatter(core_data[:, 0], core_data[:, 1], c=core_labels, cmap='plasma', s=5, marker='o')
+    plt.title("DBSCAN (Only Core Points)")
     plt.show()
 
 
@@ -90,7 +90,7 @@ def visualize_three_way_dbscan_result(dataset: np.ndarray, labels: np.ndarray, c
 
     # 绘制数据集边缘域的点
     bnd_data = dataset[list(bnd_indices)]
-    plt.scatter(bnd_data[:, 0], bnd_data[:, 1], c='black', s=10, marker='o')
+    plt.scatter(bnd_data[:, 0], bnd_data[:, 1], c='black', s=5, marker='o')
 
     # 绘制每一个簇的核心域
     colors = [
@@ -107,34 +107,35 @@ def visualize_three_way_dbscan_result(dataset: np.ndarray, labels: np.ndarray, c
         cluster = clusters[i]
         pos_indices = cluster[0]
         pos_data = dataset[list(pos_indices)]
-        plt.scatter(pos_data[:, 0], pos_data[:, 1], c=colors[i], s=10, marker='o')
+        plt.scatter(pos_data[:, 0], pos_data[:, 1], c=colors[i], s=5, marker='o')
 
-    plt.title("Three-Way DBSCAN Clustering Result")
+    plt.title("3W-DBSCAN")
     plt.show()
 
 
 def main():
-    """基于DBSCAN的结果，进一步分配"""
-    dataset = np.loadtxt('sample.txt')  # 0.5, 5
-    eps, min_samples = 0.5, 5
+    """基于DBSCAN的结果，进行三支决策"""
+    dataset = np.loadtxt('sample.txt')  # 0.3, 5
+    eps, min_samples = 0.3, 5
 
+    # 获取DBSCAN聚类结果
     clustering = DBSCAN(eps=eps, min_samples=min_samples).fit(dataset)
     labels = clustering.labels_
+
+    # 可视化DBSCAN聚类结果
     visualize_dbscan_result(dataset, labels)
     print(np.unique(labels))
 
     # 获取核心点、噪声点和边界点
-    all_indices = np.array(range(len(dataset)))
-    core_indices = clustering.core_sample_indices_
-    noise_indices = np.where(labels == -1)[0]
-    border_indices = np.array(list(set(all_indices) - set(core_indices) - set(noise_indices)))
+    all_pts = np.array(range(len(dataset)))
+    core_pts = clustering.core_sample_indices_
+    noise_pts = np.where(labels == -1)[0]
+    border_pts = np.array(list(set(all_pts) - set(core_pts) - set(noise_pts)))
 
-    visualize_dbscan_only_core_points(dataset, labels, core_indices)
+    # 获取3W-DBSCAN聚类结果
+    clusters = get_three_way_dbscan_result(dataset, labels, core_pts, noise_pts, border_pts, eps)
 
-    # 获取三支聚类的结果
-    clusters = get_three_way_dbscan_result(dataset, labels, core_indices, noise_indices, border_indices, eps)
-
-    # 可视化三支聚类的结果
+    # 可视化3W-DBSCAN聚类结果
     visualize_three_way_dbscan_result(dataset, labels, clusters)
 
 
