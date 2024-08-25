@@ -100,6 +100,56 @@ def generate_gbs(dataset: np.ndarray) -> list[GranularBall]:
     return gbs
 
 
+def calculate_mgn(gbs: list[GranularBall]) -> list[set]:
+    """计算每一个粒球的多粒度近邻(Multi Granularity Neighbors)"""
+    # n 表示粒球的数量
+    n = len(gbs)
+
+    # gbc表示granular ball centroids，用粒球的中心表示每一个粒球
+    gbc = np.array([gbs[i].centroid for i in range(len(gbs))])
+    # dists是基于gbc的距离矩阵(每个粒球到其他粒球的距离：粒球质心之间的距离)
+    dists = pairwise_distances(gbc)
+
+    # 初始化k为1
+    k = 1
+    # nn列表表示每一个元素表示一个粒球的k近邻集合
+    nn = [set() for _ in range(n)]
+    # rnn列表的每一个元素表示一个粒球的反k近邻集合
+    rnn = [set() for _ in range(n)]
+    # mgn列表的每一个元素表示一个粒球的多粒度k近邻
+    mgn = [set() for _ in range(n)]
+
+    # numbers列表表示每一个粒球的反近邻的数量，初始化为0
+    numbers = [0 for _ in range(n)]
+
+    while k < n:
+        # initial_number记录本次迭代开始之前没有反近邻的粒球的数量
+        initial_number = numbers.count(0)
+
+        for i, centroid in enumerate(gbc):
+            # 计算i号粒球的kth近邻，用j表示（如k=3，则j号粒球是距离i号粒球第3近的粒球）
+            j = np.argsort(dists[i, :])[k]
+            j = int(j)
+            # nn[i]表示i号粒球的k近邻集合，将j加入其中
+            nn[i].add(j)
+            # rnn[j]表示j号粒球的反k近邻集合，将i加入其中
+            rnn[j].add(i)
+            # j的反近邻数量+1
+            numbers[j] += 1
+
+        # current_number记录本次迭代结束之后没有反近邻的粒球数量
+        current_number = numbers.count(0)
+        if (current_number-initial_number) == 0 or current_number == 0:
+            break
+        k += 1
+
+    for i, centroid in enumerate(gbc):
+        # 计算每一个粒球的多粒度近邻集合
+        mgn[i] = nn[i].intersection(rnn[i]).union([i])
+
+    return mgn
+
+
 def verify_gbs(gbs: list[GranularBall]) -> None:
     """利用Python中集合的特性，验证生成的粒球空间的正确性"""
     size = len(gbs)
@@ -164,6 +214,10 @@ def main() -> None:
 
     # 可视化粒球空间
     visualize_gbs(gbs)
+
+    # 计算每一个粒球的多粒度近邻(multi granularity neighbors)
+    mgn = calculate_mgn(gbs)
+    print(len(mgn) == len(gbs))
 
 
 if __name__ == '__main__':
