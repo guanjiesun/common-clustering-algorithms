@@ -113,20 +113,24 @@ def gbc(data):
     gb_list_not = list()
 
     while True:
-        # old_n表示粒球的数量
+        """反复调用division函数，直到无法继续划分"""
+
+        # 记录当前粒球的总数
         old_n = len(gb_list) + len(gb_list_not)
 
+        # 进行粒球划分
         gb_list, gb_list_not = division(gb_list, gb_list_not)
 
-        # new_n表示粒球的数量
+        # 计算划分后的粒球总数
         new_n = len(gb_list) + len(gb_list_not)
 
+        # 如果粒球数量没有变化，说明无法继续划分，退出循环
         if new_n == old_n:
             # 若new_n和old_n相等，则粒球生成完成，停止迭代
             gb_list = gb_list_not
             break
 
-    # 获取radius_detect
+    # 计算检测半径
     radii = list()
     for gb in gb_list:
         if len(gb) >= 2:
@@ -135,9 +139,10 @@ def gbc(data):
     radius_mean = np.mean(radii)
     radius_detect = max(radius_median, radius_mean)
 
-    # 对粒球进行规范会处理
+    # 基于检测半径的规范化
     gb_list_not = list()
-    while 1:
+    while True:
+        """计算一个检测半径，然后反复调用normalized_ball函数进行规范化，直到无法继续规范"""
         old_n = len(gb_list) + len(gb_list_not)
         gb_list, gb_list_not = normalized_ball(gb_list, gb_list_not, radius_detect)
         new_n = len(gb_list) + len(gb_list_not)
@@ -159,6 +164,7 @@ def visualize_original_data(dataset: np.ndarray) -> None:
 def visualize_gb_list(gb_list):
     centroids = list()
     for gb in gb_list:
+        # gb是一个二维numpy数组
         centroid = np.mean(gb, axis=0)
         centroids.append(centroid)
 
@@ -171,18 +177,17 @@ def visualize_gb_list(gb_list):
 
 def main():
     # 加载数据
-    # folder_path = Path('./datasets')
-    # csv_files = list(folder_path.glob("*.csv"))
-    # for csv_file in csv_files:
-    #     print(csv_file.name)
-    #     dataset = pd.read_csv(csv_file, header=None).to_numpy()
-    dataset = np.loadtxt('sample.txt')
-    print(dataset.shape)
-    gb_list = gbc(dataset)
-
-    # 可视化原始数据和粒球
-    visualize_original_data(dataset)
-    visualize_gb_list(gb_list)
+    folder_path = Path('./datasets')
+    csv_files = list(folder_path.glob("*.csv"))
+    for csv_file in csv_files:
+        print(csv_file.name)
+        dataset = pd.read_csv(csv_file, header=None).to_numpy()
+        # dataset = np.loadtxt('sample.txt')
+        print(dataset.shape)
+        gb_list = gbc(dataset)
+        # 可视化原始数据和粒球
+        visualize_original_data(dataset)
+        visualize_gb_list(gb_list)
 
 
 if __name__ == '__main__':
