@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -9,14 +11,20 @@ def spilt_ball(data):
     ball1, ball2 = list(), list()
     foo, foo_idx = 0, 0
     bar, bar_idx = 0, 0
+
+    # 找到距离粒球质心最远的样本点foo_idx
     for i in range(len(data)):
         if foo < (sum((data[i] - centroid) ** 2)):
             foo = sum((data[i] - centroid) ** 2)
             foo_idx = i
+
+    # 找到距离样本点foo_idx最远的样本点bar_idx
     for i in range(len(data)):
         if bar < (sum((data[i] - data[foo_idx]) ** 2)):
             bar = sum((data[i] - data[foo_idx]) ** 2)
             bar_idx = i
+
+    # 以foo_idx和bar_idx为中心，将粒球所有的样本点划分为两个子集
     for j in range(0, len(data)):
         if (sum((data[j] - data[foo_idx]) ** 2)) < (sum((data[j] - data[bar_idx]) ** 2)):
             ball1.extend([data[j]])
@@ -27,15 +35,19 @@ def spilt_ball(data):
     return [ball1, ball2]
 
 
-def get_dm(gb):
-    """计算每一个粒球的平均半径"""
+def get_dm(gb: np.ndarray):
+    """dm means distribution measure(和粒球的平均半径等价)"""
     num = len(gb)
     if num == 0:
         return 0
-    # center是粒球的质心
-    center = gb.mean(0)
-    # mean_radius是粒球的平均半径
-    mean_radius = np.mean(pairwise_distances(gb, center.reshape(1, -1)))
+
+    # centroid是粒球的质心
+    centroid = gb.mean(0)
+
+    # mean_radius是粒球的平均半径(所有点到质心的平均距离)
+    mean_radius = np.mean(pairwise_distances(gb, centroid.reshape(1, -1)))
+
+    # 返回粒球gb的平均半径
     if num > 2:
         return mean_radius
     else:
@@ -43,6 +55,7 @@ def get_dm(gb):
 
 
 def division(gb_list, gb_list_not):
+    """根据DM划分粒球"""
     gb_list_new = []
     for gb in gb_list:
         if len(gb) > 20:
@@ -51,23 +64,29 @@ def division(gb_list, gb_list_not):
             w = len(ball_1) + len(ball_2)
             if w == 0:
                 raise ZeroDivisionError("Waring!! w == 0 is True")
+            if w != len(gb):
+                raise TypeError("Warning!! w != len(gb) is True")
             w1, w2 = len(ball_1) / w, len(ball_2) / w
             w_child = w1 * dm_child_1 + w2 * dm_child_2
+
+            # 判断粒球gb是否被分割
             if w_child < dm_parent:
+                # 如果子粒球的加权平均半径小于父粒球，则接受分割
                 gb_list_new.extend([ball_1, ball_2])
             else:
+                # 否则，将粒球添加到不可分割列表
                 gb_list_not.append(gb)
         else:
             gb_list_not.append(gb)
     return gb_list_new, gb_list_not
 
 
-def get_radius(gb):
+def get_radius(gb: np.ndarray):
+    """计算粒球gb的半径"""
     # center是粒球的质心
     center = gb.mean(axis=0)
-    # radius是粒球的半径
+    # radius是粒球的半径((所有点到质心的最大距离))
     radius = np.max(pairwise_distances(gb, center.reshape(1, -1)))
-
     return radius
 
 
@@ -141,14 +160,18 @@ def visualize_gb_list(gb_list):
 
 def main():
     # 加载数据
-    dataset = pd.read_csv('./datasets/D7.csv', header=None).to_numpy()
-    # dataset = np.loadtxt('sample.txt')
-    print(dataset.shape)
-    gb_list = gbc(dataset)
+    folder_path = Path('./datasets')
+    csv_files = list(folder_path.glob("*.csv"))
+    for csv_file in csv_files:
+        print(csv_file.name)
+        dataset = pd.read_csv(csv_file, header=None).to_numpy()
+        # dataset = np.loadtxt('sample.txt')
+        print(dataset.shape)
+        gb_list = gbc(dataset)
 
-    # 可视化原始数据和粒球
-    visualize_original_data(dataset)
-    visualize_gb_list(gb_list)
+        # 可视化原始数据和粒球
+        visualize_original_data(dataset)
+        visualize_gb_list(gb_list)
 
 
 if __name__ == '__main__':
