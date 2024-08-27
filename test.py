@@ -1,5 +1,5 @@
 import copy
-from pathlib import Path
+# from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -420,8 +420,9 @@ def main():
     #     print(csv_file.name)
     #     dataset = pd.read_csv(csv_file, header=None).to_numpy()
     # 加载数据
-    dataset = np.loadtxt('sample.txt')
-    print(dataset.shape)
+    # dataset = np.loadtxt('sample.txt')
+    dataset = pd.read_csv('./datasets/D7.csv', header=None).to_numpy()
+    print("data.shape =", dataset.shape)
 
     # gb_list的每一个原始都是一个二维numpy数组，每个数组表示一个粒球
     gb_list = gbc(dataset)
@@ -438,17 +439,17 @@ def main():
         centroid = np.mean(gb, axis=0)
         centroids.append(centroid)
     centroids = np.array(centroids)
-    print(centroids.shape)
+    print("centroids.shape =", centroids.shape)
 
     # 获取粒球距离矩阵(两个粒球之间的距离用两个粒球之间质心的距离表示)
     distances = pairwise_distances(centroids)
-    print(distances.shape)
+    print("distances.shape =", distances.shape)
 
     # 计算sdgs
     sdgs = SDGS(centroids, distances)
     sdgs_labels = sdgs.sdgs_label()
     sdgs_labels = np.array(sdgs_labels)
-    print(np.unique(sdgs_labels))
+    print("np.unique(sdgs_labels) =", np.unique(sdgs_labels))
 
     # 可视化sdgs产生的标签
     visualize_clustering_result(centroids, sdgs_labels)
@@ -458,7 +459,7 @@ def main():
 
     # 创建一个NARD实例nard
     nard = NARD(centroids, nn_tool, sdgs)
-    print(nard.nard.shape)
+    print("nard.nard.shape =", nard.nard.shape)
     print(nard.nard.max(), nard.nard.min())
 
 
