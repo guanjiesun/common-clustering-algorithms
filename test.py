@@ -146,14 +146,22 @@ def gbc(data):
     # 检测半径为radii的平均值和中位数中的较大值
     radius_detect = np.max([radius_median, radius_mean])
 
-    # 基于检测半径的规范化
+    # 重置不可分割粒球列表
     gb_list_not = list()
+    # 基于检测半径的规范化
     while True:
         """计算一个检测半径，然后反复调用normalized_ball函数进行规范化，直到无法继续规范"""
+        # 记录当前粒球的总数old_n
         old_n = len(gb_list) + len(gb_list_not)
+
+        # 进行规范化
         gb_list, gb_list_not = normalized_ball(gb_list, gb_list_not, radius_detect)
+
+        # 计算规范化后的粒球总数new_n
         new_n = len(gb_list) + len(gb_list_not)
+
         if new_n == old_n:
+            # 如果粒球数量没有变化，说明无法继续规范化，退出循环
             gb_list = gb_list_not
             break
 
