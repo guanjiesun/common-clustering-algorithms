@@ -106,6 +106,8 @@ def normalized_ball(gb_list, gb_list_not, radius_detect):
 
 
 def gbc(data):
+    """首先根据数据的密度特性进行粗略划分，然后再基于一个全局的尺度（检测半径）进行细化，有助于产生更均匀和合理的聚类结果"""
+
     # 存储当前正在处理或待处理的粒球
     gb_list = [data]
 
