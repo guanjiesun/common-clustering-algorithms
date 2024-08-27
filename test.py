@@ -56,7 +56,7 @@ def get_dm(gb: np.ndarray):
 
 def division(gb_list, gb_list_not):
     """根据DM划分粒球"""
-    gb_list_new = []
+    gb_list_new = list()
     for gb in gb_list:
         if len(gb) > 20:
             ball_1, ball_2 = spilt_ball(gb)
@@ -91,7 +91,7 @@ def get_radius(gb: np.ndarray):
 
 
 def normalized_ball(gb_list, gb_list_not, radius_detect):
-    gb_list_temp = []
+    gb_list_temp = list()
     for gb in gb_list:
         if len(gb) < 2:
             gb_list_not.append(gb)
@@ -106,35 +106,46 @@ def normalized_ball(gb_list, gb_list_not, radius_detect):
 
 
 def gbc(data):
-    gb_list_temp = [data]
-    gb_list_not_temp = []
+    # 存储当前正在处理或待处理的粒球
+    gb_list = [data]
 
-    # divide by DM
-    while 1:
-        ball_number_old = len(gb_list_temp) + len(gb_list_not_temp)
-        gb_list_temp, gb_list_not_temp = division(gb_list_temp, gb_list_not_temp)
-        ball_number_new = len(gb_list_temp) + len(gb_list_not_temp)
-        if ball_number_new == ball_number_old:
-            gb_list_temp = gb_list_not_temp
+    # 存储不能或不需要进一步分割的粒球
+    gb_list_not = list()
+
+    while True:
+        # old_n表示粒球的数量
+        old_n = len(gb_list) + len(gb_list_not)
+
+        gb_list, gb_list_not = division(gb_list, gb_list_not)
+
+        # new_n表示粒球的数量
+        new_n = len(gb_list) + len(gb_list_not)
+
+        if new_n == old_n:
+            # 若new_n和old_n相等，则粒球生成完成，停止迭代
+            gb_list = gb_list_not
             break
 
-    radius = []
-    for gb in gb_list_temp:
+    # 获取radius_detect
+    radii = list()
+    for gb in gb_list:
         if len(gb) >= 2:
-            radius.append(get_radius(gb))
-    radius_median = np.median(radius)
-    radius_mean = np.mean(radius)
+            radii.append(get_radius(gb))
+    radius_median = np.median(radii)
+    radius_mean = np.mean(radii)
     radius_detect = max(radius_median, radius_mean)
-    gb_list_not_temp = []
+
+    # 对粒球进行规范会处理
+    gb_list_not = list()
     while 1:
-        ball_number_old = len(gb_list_temp) + len(gb_list_not_temp)
-        gb_list_temp, gb_list_not_temp = normalized_ball(gb_list_temp, gb_list_not_temp, radius_detect)
-        ball_number_new = len(gb_list_temp) + len(gb_list_not_temp)
-        if ball_number_new == ball_number_old:
-            gb_list_temp = gb_list_not_temp
+        old_n = len(gb_list) + len(gb_list_not)
+        gb_list, gb_list_not = normalized_ball(gb_list, gb_list_not, radius_detect)
+        new_n = len(gb_list) + len(gb_list_not)
+        if new_n == old_n:
+            gb_list = gb_list_not
             break
 
-    return gb_list_temp
+    return gb_list
 
 
 def visualize_original_data(dataset: np.ndarray) -> None:
@@ -160,18 +171,18 @@ def visualize_gb_list(gb_list):
 
 def main():
     # 加载数据
-    folder_path = Path('./datasets')
-    csv_files = list(folder_path.glob("*.csv"))
-    for csv_file in csv_files:
-        print(csv_file.name)
-        dataset = pd.read_csv(csv_file, header=None).to_numpy()
-        # dataset = np.loadtxt('sample.txt')
-        print(dataset.shape)
-        gb_list = gbc(dataset)
+    # folder_path = Path('./datasets')
+    # csv_files = list(folder_path.glob("*.csv"))
+    # for csv_file in csv_files:
+    #     print(csv_file.name)
+    #     dataset = pd.read_csv(csv_file, header=None).to_numpy()
+    dataset = np.loadtxt('sample.txt')
+    print(dataset.shape)
+    gb_list = gbc(dataset)
 
-        # 可视化原始数据和粒球
-        visualize_original_data(dataset)
-        visualize_gb_list(gb_list)
+    # 可视化原始数据和粒球
+    visualize_original_data(dataset)
+    visualize_gb_list(gb_list)
 
 
 if __name__ == '__main__':
