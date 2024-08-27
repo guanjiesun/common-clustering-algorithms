@@ -43,10 +43,8 @@ def get_dm(gb: np.ndarray):
 
     # centroid是粒球的质心
     centroid = gb.mean(0)
-
     # mean_radius是粒球的平均半径(所有点到质心的平均距离)
     mean_radius = np.mean(pairwise_distances(gb, centroid.reshape(1, -1)))
-
     # 返回粒球gb的平均半径
     if num > 2:
         return mean_radius
@@ -94,12 +92,16 @@ def normalized_ball(gb_list, gb_list_not, radius_detect):
     gb_list_temp = list()
     for gb in gb_list:
         if len(gb) < 2:
+            # 如果粒球中的点少于2个，则将此粒球添加到不可分割的粒球列表中
             gb_list_not.append(gb)
         else:
             if get_radius(gb) <= 2 * radius_detect:
+                # 如果粒球的半径小于等于检测半径的两倍，则将此粒球添加到不可分割的粒球列表中
                 gb_list_not.append(gb)
             else:
+                # 否则，将粒球分割成两个子粒球
                 ball_1, ball_2 = spilt_ball(gb)
+                # 将这两个子粒球添加到gb_list_temp列表中
                 gb_list_temp.extend([ball_1, ball_2])
 
     return gb_list_temp, gb_list_not
@@ -135,11 +137,14 @@ def gbc(data):
     # 计算检测半径
     radii = list()
     for gb in gb_list:
-        if len(gb) >= 2:
+        if len(gb) > 1:
             radii.append(get_radius(gb))
+    # 求radii的中位数
     radius_median = np.median(radii)
+    # 求radii的平均值
     radius_mean = np.mean(radii)
-    radius_detect = max(radius_median, radius_mean)
+    # 检测半径为radii的平均值和中位数中的较大值
+    radius_detect = np.max([radius_median, radius_mean])
 
     # 基于检测半径的规范化
     gb_list_not = list()
@@ -170,26 +175,30 @@ def visualize_gb_list(gb_list):
         centroid = np.mean(gb, axis=0)
         centroids.append(centroid)
 
+    # centroids的每一个元素是对应粒球的质心
     centroids = np.array(centroids)
-    print(centroids.shape)
-    plt.title('Granular Ball Centers')
+    plt.title('Granular Ball Centroids')
     plt.scatter(centroids[:, 0], centroids[:, 1], s=10, marker='.', color='red')
     plt.show()
 
 
 def main():
+    # folder_path = Path('./datasets')
+    # csv_files = list(folder_path.glob("*.csv"))
+    # for csv_file in csv_files:
+    #     print(csv_file.name)
+    #     dataset = pd.read_csv(csv_file, header=None).to_numpy()
     # 加载数据
-    folder_path = Path('./datasets')
-    csv_files = list(folder_path.glob("*.csv"))
-    for csv_file in csv_files:
-        print(csv_file.name)
-        dataset = pd.read_csv(csv_file, header=None).to_numpy()
-        # dataset = np.loadtxt('sample.txt')
-        print(dataset.shape)
-        gb_list = gbc(dataset)
-        # 可视化原始数据和粒球
-        visualize_original_data(dataset)
-        visualize_gb_list(gb_list)
+    dataset = np.loadtxt('sample.txt')
+    print(dataset.shape)
+
+    # gb_list的每一个原始都是一个二维numpy数组，每个数组表示一个粒球
+    gb_list = gbc(dataset)
+    print(len(gb_list))
+
+    # 可视化原始数据和粒球
+    visualize_original_data(dataset)
+    visualize_gb_list(gb_list)
 
 
 if __name__ == '__main__':
