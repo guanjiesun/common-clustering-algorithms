@@ -153,12 +153,14 @@ def calculate_mgn(gbs: list[GranularBall]) -> list[set]:
 
 def verify_gbs(gbs: list[GranularBall]) -> None:
     """利用Python中集合的特性，验证生成的粒球空间的正确性"""
-    size = len(gbs)
+
+    # n_gbs表示粒球的数量
+    n_gbs = len(gbs)
 
     # 任意两个粒球的indices互不相交，则生成的粒球空间正确
-    for i in range(size):
+    for i in range(n_gbs):
         set_i = set(gbs[i].indices)
-        for j in range(i+1, size):
+        for j in range(i+1, n_gbs):
             set_j = set(gbs[j].indices)
             if set_i.intersection(set_j) != set():
                 raise TypeError("Wrong Granular Ball Space")
@@ -200,25 +202,28 @@ def main() -> None:
     3. 可视化粒球空间
     """
 
-    # 载入数据
-    dataset_path = Path('./datasets/D7.csv')
-    dataset = pd.read_csv(dataset_path, header=None).to_numpy()
+    folder_path = Path('./datasets')
+    csv_files = list(folder_path.glob("*.csv"))
 
-    # 生成粒球空间
-    gbs = generate_gbs(dataset)
+    for csv_file in csv_files:
+        # 载入数据
+        dataset = pd.read_csv(csv_file, header=None).to_numpy()
 
-    # 验证粒球空间的有效性
-    verify_gbs(gbs)
+        # 生成粒球空间
+        gbs = generate_gbs(dataset)
 
-    # 可视化原始数据
-    visualize_original_data(dataset)
+        # 验证粒球空间的有效性
+        verify_gbs(gbs)
 
-    # 可视化粒球空间
-    visualize_gbs(gbs)
+        # 可视化原始数据
+        visualize_original_data(dataset)
 
-    # 计算每一个粒球的多粒度近邻(multi granularity neighbors)
-    mgn = calculate_mgn(gbs)
-    print(len(mgn) == len(gbs))
+        # 可视化粒球空间
+        visualize_gbs(gbs)
+
+        # 计算每一个粒球的多粒度近邻(multi granularity neighbors)
+        mgn = calculate_mgn(gbs)
+        print(len(mgn) == len(gbs))
 
 
 if __name__ == '__main__':
