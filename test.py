@@ -171,7 +171,6 @@ def gbc(data):
 
 def visualize_original_data(dataset: np.ndarray) -> None:
     """可视化原始数据"""
-
     plt.scatter(dataset[:, 0], dataset[:, 1], s=10, marker='.', color='black')
     plt.title('Original Data')
     plt.show()
@@ -179,8 +178,8 @@ def visualize_original_data(dataset: np.ndarray) -> None:
 
 def visualize_gb_list(centroids: np.ndarray) -> None:
     """绘制粒球的质心"""
-    plt.title('Granular Ball Centroids')
     plt.scatter(centroids[:, 0], centroids[:, 1], s=10, marker='.', color='red')
+    plt.title('Granular Ball Centroids')
     plt.show()
 
 
@@ -452,8 +451,9 @@ def dbscan_auto_adaptive(centroids: np.ndarray, nard, natural_nbs) -> np.ndarray
     return labels
 
 
-def visualize_adaptive_dbscan_result(centroids: np.ndarray, labels: np.ndarray) -> None:
+def visualize_adaptive_dbscan_result_gb_view(centroids: np.ndarray, labels: np.ndarray) -> None:
     plt.scatter(centroids[:, 0], centroids[:, 1], c=labels, cmap='plasma', s=10, marker='.')
+    plt.title("Adaptive DBSCAN Clustering Result (GB View)")
     plt.show()
 
 
@@ -476,6 +476,7 @@ def get_dataset_labels(gb_list: list[np.ndarray], gb_labels: np.ndarray) -> tupl
 
 def visualize_adaptive_dbscan_result_sample_view(dataset: np.ndarray, labels: np.ndarray) -> None:
     plt.scatter(dataset[:, 0], dataset[:, 1], c=labels, cmap='plasma', s=5, marker='.')
+    plt.title("Adaptive DBSCAN Clustering Result (Sample View)")
     plt.show()
 
 
@@ -488,7 +489,7 @@ def main():
     #     dataset = pd.read_csv(csv_file, header=None).to_numpy()
     # 加载数据
     # dataset = np.loadtxt('sample.txt')
-    dataset = pd.read_csv('./datasets/D2.csv', header=None).to_numpy()
+    dataset = pd.read_csv('./datasets/D9.csv', header=None).to_numpy()
     print("data.shape =", dataset.shape)
 
     # gb_list的每一个原始都是一个二维numpy数组，每个数组表示一个粒球
@@ -520,7 +521,7 @@ def main():
     print("np.unique(sdgs_labels) =", np.unique(sdgs_labels))
 
     # 可视化sdgs产生的标签
-    visualize_sdgs_result(centroids, sdgs_labels)
+    # visualize_sdgs_result(centroids, sdgs_labels)
 
     # 创建一个NaturalNeighborsSearch实例nn_tool
     nn_tool = NaturalNeighborsSearch(distances)
@@ -538,7 +539,7 @@ def main():
     print("gb_labels.shape =", gb_labels.shape)
 
     # 可视化adaptive-dbscan聚类结果(粒球视角)
-    visualize_adaptive_dbscan_result(centroids, gb_labels)
+    visualize_adaptive_dbscan_result_gb_view(centroids, gb_labels)
 
     # 根据gb_list求出数据集dataset和样本点的簇标签
     dataset, sample_labels = get_dataset_labels(gb_list, gb_labels)
