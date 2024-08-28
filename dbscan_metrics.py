@@ -2,14 +2,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.cluster import DBSCAN
 from sklearn.datasets import make_blobs
-from sklearn.metrics import silhouette_score, calinski_harabasz_score, davies_bouldin_score
 from sklearn.metrics import pairwise_distances
+from sklearn.metrics import silhouette_score
+from sklearn.metrics import calinski_harabasz_score
+from sklearn.metrics import davies_bouldin_score
 from validclust import dunn
 
 
 def calculate_clustering_metrics(data: np.ndarray, labels: np.ndarray) -> None:
     # 确保至少有两个聚类才能计算指标
     if len(np.unique(labels)) >= 2:
+        # 计算硬聚类的四个常用内部指标
         silhouette = silhouette_score(data, labels)
         calinski_harabasz = calinski_harabasz_score(data, labels)
         davies_bouldin = davies_bouldin_score(data, labels)
