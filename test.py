@@ -414,9 +414,10 @@ def dbscan_auto_adaptive(centroids: np.ndarray, nard, natural_nbs) -> np.ndarray
     # 获得数据的行和列(一共有n条数据)
     n, m = centroids.shape
 
-    # 将矩阵的中大于minPts的数赋予1，小于minPts的数赋予零，然后1代表对每一行求和,然后求核心点坐标的索引
+    # 核心点的索引
     core_points_index = np.where(nard >= threshold_density)[0]
-    print(f"\nCore points:{len(core_points_index)}\nTotal points:{len(centroids)}\n")
+    print(f"\nCore points:{len(core_points_index)}")
+    print(f"Total points:{len(centroids)}\n")
 
     # 初始化类别，-1代表未分类。
     labels = np.full((n,), -1)
@@ -479,6 +480,7 @@ def visualize_adaptive_dbscan_result_sample_view(dataset: np.ndarray, labels: np
 
 
 def main():
+    # TODO 可以调整的的参数：是否将一个粒球分割为两个粒球；dbscan算法中判断一个点是否为核心点
     # folder_path = Path('./datasets')
     # csv_files = list(folder_path.glob("*.csv"))
     # for csv_file in csv_files:
@@ -538,12 +540,12 @@ def main():
     # 可视化adaptive-dbscan聚类结果(粒球视角)
     visualize_adaptive_dbscan_result(centroids, gb_labels)
 
-    # 根据gb_list求出数据集dataset
-    dataset, labels = get_dataset_labels(gb_list, gb_labels)
-    print("np.unique(labels) =", np.unique(labels))
+    # 根据gb_list求出数据集dataset和样本点的簇标签
+    dataset, sample_labels = get_dataset_labels(gb_list, gb_labels)
+    print("np.unique(sample_labels) =", np.unique(sample_labels))
 
     # 可视化adaptive-dbscan聚类结果(样本点视角)
-    visualize_adaptive_dbscan_result_sample_view(dataset, labels)
+    visualize_adaptive_dbscan_result_sample_view(dataset, sample_labels)
 
 
 if __name__ == '__main__':
