@@ -177,15 +177,8 @@ def visualize_original_data(dataset: np.ndarray) -> None:
     plt.show()
 
 
-def visualize_gb_list(gb_list):
-    centroids = list()
-    for gb in gb_list:
-        # gb是一个二维numpy数组
-        centroid = np.mean(gb, axis=0)
-        centroids.append(centroid)
-
-    # centroids的每一个元素是对应粒球的质心
-    centroids = np.array(centroids)
+def visualize_gb_list(centroids: np.ndarray) -> None:
+    """绘制粒球的质心"""
     plt.title('Granular Ball Centroids')
     plt.scatter(centroids[:, 0], centroids[:, 1], s=10, marker='.', color='red')
     plt.show()
@@ -262,7 +255,7 @@ class SampleDistribution:
 class SDGS:
     def __init__(self, data, distance_matrix):
         self.data_ = data
-        self.sdn_ = 0  # 样本分布数量
+        self.sdn_ = 0
         self.distanceMatrix_ = distance_matrix
         self.nn_tool = NaturalNeighborsSearch(distance_matrix)
         self.MGN_ = self.mgb_generation()
@@ -327,7 +320,7 @@ class SDGS:
         return ret_sdgs
 
 
-def visualize_clustering_result(centroids, labels):
+def visualize_sdgs_result(centroids, labels):
     plt.scatter(centroids[:, 0], centroids[:, 1], s=10, marker='.', c=labels, cmap='plasma')
     plt.show()
 
@@ -429,8 +422,6 @@ def main():
 
     # 可视化原始数据
     visualize_original_data(dataset)
-    # 可视化基于原始数据生成的粒球空间
-    visualize_gb_list(gb_list)
 
     # 获取由粒球质心组成的二维numpy数组
     centroids = list()
@@ -440,6 +431,9 @@ def main():
         centroids.append(centroid)
     centroids = np.array(centroids)
     print("centroids.shape =", centroids.shape)
+
+    # 可视化基于原始数据生成的粒球空间
+    visualize_gb_list(centroids)
 
     # 获取粒球距离矩阵(两个粒球之间的距离用两个粒球之间质心的距离表示)
     distances = pairwise_distances(centroids)
@@ -452,7 +446,7 @@ def main():
     print("np.unique(sdgs_labels) =", np.unique(sdgs_labels))
 
     # 可视化sdgs产生的标签
-    visualize_clustering_result(centroids, sdgs_labels)
+    visualize_sdgs_result(centroids, sdgs_labels)
 
     # 创建一个NaturalNeighborsSearch实例nn_tool
     nn_tool = NaturalNeighborsSearch(distances)
