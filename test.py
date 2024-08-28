@@ -406,6 +406,78 @@ class NARD:
         return dist, mgd
 
 
+def dbscan_auto_adaptive(centroids: np.ndarray, nard, natural_nbs) -> np.ndarray:
+
+    # 获得距离矩阵
+    threshold_density = nard.mean() * 0.4
+
+    # 获得数据的行和列(一共有n条数据)
+    n, m = centroids.shape
+
+    # 将矩阵的中大于minPts的数赋予1，小于minPts的数赋予零，然后1代表对每一行求和,然后求核心点坐标的索引
+    core_points_index = np.where(nard >= threshold_density)[0]
+    print(f"\nCore points:{len(core_points_index)}\nTotal points:{len(centroids)}\n")
+
+    # 初始化类别，-1代表未分类。
+    labels = np.full((n,), -1)
+
+    cluster_id = 0
+    # 遍历所有的核心点
+    for point_idx in core_points_index:
+        # 如果核心点未被分类，将其作为的种子点，开始寻找相应簇集
+        if labels[point_idx] == -1:
+            # 首先将点pointId标记为当前类别(即标识为已操作)
+            labels[point_idx] = cluster_id
+            # 然后寻找种子点的eps邻域且没有被分类的点，将其放入种子集合
+            neighbour = natural_nbs[point_idx]
+            seeds = set(neighbour)
+            # 通过种子点，开始生长，寻找密度可达的数据点，一直到种子集合为空，一个簇集寻找完毕
+            while len(seeds) > 0:
+                # 弹出一个新种子点
+                new_point = seeds.pop()
+                # 将newPoint标记为当前类
+                labels[new_point] = cluster_id
+                # 寻找newPoint种子点eps邻域（包含自己）
+                query_results = natural_nbs[new_point]
+                # 如果newPoint属于核心点，那么newPoint是可以扩展的，即密度是可以通过newPoint继续密度可达的
+                if new_point in core_points_index:
+                    # 将邻域内且没有被分类的点压入种子集合
+                    for resultPoint in query_results:
+                        if labels[resultPoint] == -1:
+                            seeds.add(resultPoint)
+            # 簇集生长完毕，寻找到一个类别
+            cluster_id = cluster_id + 1
+
+    return labels
+
+
+def visualize_adaptive_dbscan_result(centroids: np.ndarray, labels: np.ndarray) -> None:
+    plt.scatter(centroids[:, 0], centroids[:, 1], c=labels, cmap='plasma', s=10, marker='.')
+    plt.show()
+
+
+def get_dataset_labels(gb_list: list[np.ndarray], gb_labels: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """基于gb_list和gb_labels，求出原始数据集dataset和每一个样本点的簇标签"""
+    dataset = gb_list[0]
+    for i in range(1, len(gb_list)):
+        dataset = np.vstack((dataset, gb_list[i]))
+
+    labels = np.full(len(dataset), -1)
+    start = 0
+    for i, gb in enumerate(gb_list):
+        end = len(gb)
+        for j in range(start, end + start):
+            labels[j] = gb_labels[i]
+        start += end
+
+    return dataset, labels
+
+
+def visualize_adaptive_dbscan_result_sample_view(dataset: np.ndarray, labels: np.ndarray) -> None:
+    plt.scatter(dataset[:, 0], dataset[:, 1], c=labels, cmap='plasma', s=5, marker='.')
+    plt.show()
+
+
 def main():
     # folder_path = Path('./datasets')
     # csv_files = list(folder_path.glob("*.csv"))
@@ -450,11 +522,29 @@ def main():
 
     # 创建一个NaturalNeighborsSearch实例nn_tool
     nn_tool = NaturalNeighborsSearch(distances)
+    # natural_neighbors是一个列表，每一个元素都是以集合，表示一个粒球的自然近邻
+    natural_neighbors, _, _, _ = nn_tool.natural_search()
 
     # 创建一个NARD实例nard
     nard = NARD(centroids, nn_tool, sdgs)
     print("nard.nard.shape =", nard.nard.shape)
     print(nard.nard.max(), nard.nard.min())
+
+    # 使用自适应的DBSCAN算法
+    gb_labels = dbscan_auto_adaptive(centroids, nard.nard, natural_neighbors)
+    print(np.unique(gb_labels))
+    print("gb_labels.shape =", gb_labels.shape)
+
+    # 可视化adaptive-dbscan聚类结果(粒球视角)
+    visualize_adaptive_dbscan_result(centroids, gb_labels)
+
+    # 根据gb_list求出数据集dataset
+    dataset, labels = get_dataset_labels(gb_list, gb_labels)
+    print(len(dataset), len(labels))
+    print(np.unique(labels))
+
+    # 可视化adaptive-dbscan聚类结果(样本点视角)
+    visualize_adaptive_dbscan_result_sample_view(dataset, labels)
 
 
 if __name__ == '__main__':
