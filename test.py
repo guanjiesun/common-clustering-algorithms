@@ -57,7 +57,7 @@ def division(gb_list, gb_list_not):
     """根据DM划分粒球"""
     gb_list_new = list()
     for gb in gb_list:
-        if len(gb) > 10:
+        if len(gb) > 20:
             ball_1, ball_2 = spilt_ball(gb)
             dm_parent, dm_child_1, dm_child_2 = get_dm(gb), get_dm(ball_1), get_dm(ball_2)
             w = len(ball_1) + len(ball_2)
@@ -486,7 +486,7 @@ def main():
     #     dataset = pd.read_csv(csv_file, header=None).to_numpy()
     # 加载数据
     # dataset = np.loadtxt('sample.txt')
-    dataset = pd.read_csv('./datasets/D7.csv', header=None).to_numpy()
+    dataset = pd.read_csv('./datasets/D2.csv', header=None).to_numpy()
     print("data.shape =", dataset.shape)
 
     # gb_list的每一个原始都是一个二维numpy数组，每个数组表示一个粒球
@@ -532,7 +532,7 @@ def main():
 
     # 使用自适应的DBSCAN算法
     gb_labels = dbscan_auto_adaptive(centroids, nard.nard, natural_neighbors)
-    print(np.unique(gb_labels))
+    print("np.unique(gb_labels) =", np.unique(gb_labels))
     print("gb_labels.shape =", gb_labels.shape)
 
     # 可视化adaptive-dbscan聚类结果(粒球视角)
@@ -540,8 +540,7 @@ def main():
 
     # 根据gb_list求出数据集dataset
     dataset, labels = get_dataset_labels(gb_list, gb_labels)
-    print(len(dataset), len(labels))
-    print(np.unique(labels))
+    print("np.unique(labels) =", np.unique(labels))
 
     # 可视化adaptive-dbscan聚类结果(样本点视角)
     visualize_adaptive_dbscan_result_sample_view(dataset, labels)
