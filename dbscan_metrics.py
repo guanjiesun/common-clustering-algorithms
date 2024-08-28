@@ -42,7 +42,7 @@ def visualize_dbscan_clustering_results(data: np.ndarray, labels: np.ndarray) ->
 
 
 def main():
-    # 生成数据
+    # make_blobs: Generate isotropic Gaussian blobs for clustering.
     data, true_labels = make_blobs(n_samples=300, n_features=2, centers=4, cluster_std=0.60, random_state=0)
 
     # 使用DBSCAN进行聚类
