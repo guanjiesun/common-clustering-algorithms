@@ -19,7 +19,7 @@ def calculate_clustering_metrics(data: np.ndarray, labels: np.ndarray) -> None:
 
 
 def calculate_sample_numbers_of_each_cluster(labels: np.ndarray) -> None:
-    # 计算每个聚类的包含的样本点个数(熟悉np.unique这个函数)
+    # 计算每个聚类的包含的样本点个数(熟悉np.unique函数)
     unique_labels, counts = np.unique(labels, return_counts=True)
     for label, count in zip(unique_labels, counts):
         if label == -1:
@@ -49,10 +49,19 @@ def main():
     dbscan = DBSCAN(eps=0.5, min_samples=5)
     labels = dbscan.fit_predict(data)
 
-    # 计算内部聚类指标(排除噪声点)
-    valid_points = labels != -1
-    valid_data = data[valid_points]
-    valid_labels = labels[valid_points]
+    # # 计算内部聚类指标(排除噪声点)
+    # valid_points = labels != -1
+    # valid_data = data[valid_points]
+    # valid_labels = labels[valid_points]
+
+    # 可视化DBSCAN聚类结果
+    visualize_dbscan_clustering_results(data, labels)
+
+    # 计算DBSCAN聚类指标
+    calculate_clustering_metrics(data, labels)
+
+    # 计算每一个簇包含的样本点个数
+    calculate_sample_numbers_of_each_cluster(labels)
 
 
 if __name__ == '__main__':
