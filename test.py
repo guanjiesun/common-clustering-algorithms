@@ -57,7 +57,7 @@ def division(gb_list, gb_list_not):
     """根据DM划分粒球"""
     gb_list_new = list()
     for gb in gb_list:
-        if len(gb) > 20:
+        if len(gb) > 10:
             ball_1, ball_2 = spilt_ball(gb)
             dm_parent, dm_child_1, dm_child_2 = get_dm(gb), get_dm(ball_1), get_dm(ball_2)
             w = len(ball_1) + len(ball_2)
@@ -408,7 +408,7 @@ class NARD:
 def dbscan_auto_adaptive(centroids: np.ndarray, nard, natural_nbs) -> np.ndarray:
 
     # 获得距离矩阵
-    threshold_density = nard.mean() * 0.4
+    threshold_density = nard.mean() * 0.5
 
     # 获得数据的行和列(一共有n条数据)
     n, m = centroids.shape
@@ -489,7 +489,7 @@ def main():
     #     dataset = pd.read_csv(csv_file, header=None).to_numpy()
     # 加载数据
     # dataset = np.loadtxt('sample.txt')
-    dataset = pd.read_csv('./datasets/D9.csv', header=None).to_numpy()
+    dataset = pd.read_csv('./datasets/D7.csv', header=None).to_numpy()
     print("data.shape =", dataset.shape)
 
     # gb_list的每一个原始都是一个二维numpy数组，每个数组表示一个粒球
@@ -531,7 +531,6 @@ def main():
     # 创建一个NARD实例nard
     nard = NARD(centroids, nn_tool, sdgs)
     print("nard.nard.shape =", nard.nard.shape)
-    print(nard.nard.max(), nard.nard.min())
 
     # 使用自适应的DBSCAN算法
     gb_labels = dbscan_auto_adaptive(centroids, nard.nard, natural_neighbors)
